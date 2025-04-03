@@ -3,7 +3,7 @@
 Adds support for smarty pants:
 
 ## SmartyPants Quotes
- 
+
 Converts the following character to smarty pants:
 
 ```````````````````````````````` example
@@ -83,6 +83,7 @@ They are' not matching 'quotes
 .
 <p>They are' not matching 'quotes</p>
 ````````````````````````````````
+
 An emphasis starting inside left/right quotes will span over the right quote:
 
 ```````````````````````````````` example

@@ -1,7 +1,7 @@
 If you would like a tool added to this list [email me](mailto:pritchard.adam@gmail.com).
 
-A bigger list of tools (that probably negates the need for this page) can be found at [github.com/writekit/awesome-markdown](https://github.com/writekit/awesome-markdown).
-
+A bigger list of tools (that probably negates the need for this page) can be found
+at [github.com/writekit/awesome-markdown](https://github.com/writekit/awesome-markdown).
 
 ## Tools
 
@@ -11,7 +11,6 @@ A bigger list of tools (that probably negates the need for this page) can be fou
 * [Minimalist Online Markdown Editor](http://markdown.pioul.fr/)
 * [Mou](http://25.io/mou/): macOS editor
 * [Haroopad](http://pad.haroopress.com/user.html): Cross-platform editor
-
 
 ## Libraries
 

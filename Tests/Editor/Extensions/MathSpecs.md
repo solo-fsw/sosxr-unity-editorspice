@@ -3,7 +3,7 @@
 Adds support for mathematics spans:
 
 ## Math Inline
- 
+
 Allows to define a mathematic block embraced by `$...$`
 
 ```````````````````````````````` example
@@ -37,6 +37,7 @@ block$ and? this is a $math block$
 <p>This is not a $math
 block$ and? this is a <span class="math">math block</span></p>
 ````````````````````````````````
+
 An opening `$` can be followed by a space if the closing is also preceded by a space `$`:
 
 ```````````````````````````````` example
@@ -71,7 +72,8 @@ This is not a m$ath block$
 <p>This is not a m$ath block$</p>
 ````````````````````````````````
 
-For the closing `$` it requires a space after or a punctuation (but cannot be preceded by a space and cannot be used within a word):
+For the closing `$` it requires a space after or a punctuation (but cannot be preceded by a space and cannot be used
+within a word):
 
 ```````````````````````````````` example
 This is not a $math bloc$k
@@ -79,7 +81,8 @@ This is not a $math bloc$k
 <p>This is not a $math bloc$k</p>
 ````````````````````````````````
 
-For the closing `$` it requires a space after or a punctuation (but cannot be preceded by a space and cannot be used within a word):
+For the closing `$` it requires a space after or a punctuation (but cannot be preceded by a space and cannot be used
+within a word):
 
 ```````````````````````````````` example
 This is should not match a 16$ or a $15
@@ -87,7 +90,7 @@ This is should not match a 16$ or a $15
 <p>This is should not match a 16$ or a $15</p>
 ````````````````````````````````
 
-A `$` can be escaped between a math inline block by using the escape `\\` 
+A `$` can be escaped between a math inline block by using the escape `\\`
 
 ```````````````````````````````` example
 This is a $math \$ block$
@@ -110,6 +113,7 @@ This is a $math block$ with text on both sides.
 .
 <p>This is a <span class="math">math block</span> with text on both sides.</p>
 ````````````````````````````````
+
 A mathematic block takes precedence over standard emphasis `*` `_`:
 
 ```````````````````````````````` example
@@ -117,6 +121,7 @@ This is *a $math* block$
 .
 <p>This is *a <span class="math">math* block</span></p>
 ````````````````````````````````
+
 An opening $$ at the beginning of a line should not be interpreted as a Math block:
 
 ```````````````````````````````` example

@@ -2,10 +2,13 @@ https://github.com/karlcow/markdown-testsuite
 
 # Colophon - October 1st, 2014
 
-This project was initiated to provide a test suite for Markdown markup, and eventually create a specification from this test results. A part of of the community has started a new endeavor which seems to get traction as [CommonMark](https://github.com/jgm/stmd). **We are then closing this project** and encourage you to contribute to CommonMark. 
+This project was initiated to provide a test suite for Markdown markup, and eventually create a specification from this
+test results. A part of of the community has started a new endeavor which seems to get traction
+as [CommonMark](https://github.com/jgm/stmd). **We are then closing this project** and encourage you to contribute to
+CommonMark.
 
-The most interesting part of this project would not have been possible without the dedication of [Ciro Santilli](https://github.com/cirosantilli) @cirosantilli. So big applause and thank you to him.
-
+The most interesting part of this project would not have been possible without the dedication
+of [Ciro Santilli](https://github.com/cirosantilli) @cirosantilli. So big applause and thank you to him.
 
 The rest is kept around for archives and references.
 
@@ -13,14 +16,17 @@ The rest is kept around for archives and references.
 
 Inspired by questions on [W3C Markdown Community Group](http://www.w3.org/community/markdown).
 
-Pull Requests are welcome. See the [CONTRIBUTING Guidelines](https://github.com/karlcow/markdown-testsuite/blob/master/CONTRIBUTING.md)
+Pull Requests are welcome. See
+the [CONTRIBUTING Guidelines](https://github.com/karlcow/markdown-testsuite/blob/master/CONTRIBUTING.md)
 
 ## Design goals
 
 - Comprehensive.
 - Small modularized tests.
-- Easy to run tests using any programming language. In particular, data representations must have an implementation on all major languages.
-- Develop a consensus based markdown specification at [markdown-spec.html](markdown-spec.html). Visualize it [here](http://htmlpreview.github.io/?https://github.com/karlcow/markdown-testsuite/blob/master/markdown-spec.html).
+- Easy to run tests using any programming language. In particular, data representations must have an implementation on
+  all major languages.
+- Develop a consensus based markdown specification at [markdown-spec.html](markdown-spec.html). Visualize
+  it [here](http://htmlpreview.github.io/?https://github.com/karlcow/markdown-testsuite/blob/master/markdown-spec.html).
 
 ## Test Scripts
 
@@ -81,7 +87,8 @@ Where `F` indicates a failing test.
 
 ## Other Noticeable Test Suites
 
-We haven't been the first test suite effort. Some projects have maintained their own test suite for a long time. Hopefully we can reach a state where people agree on the terms of what should be a good test suite for all developers.
+We haven't been the first test suite effort. Some projects have maintained their own test suite for a long time.
+Hopefully we can reach a state where people agree on the terms of what should be a good test suite for all developers.
 
 - [Original test suite](http://daringfireball.net/projects/downloads/MarkdownTest_1.0.zip)
 - [PHP markdown test suite:](https://github.com/michelf/mdtest/tree/master/Markdown.mdtest)
@@ -90,4 +97,6 @@ We haven't been the first test suite effort. Some projects have maintained their
 - [multimarkdown test suite](https://github.com/fletcher/MMD-Test-Suite)
 - [John MacFarlane's Standard Markdown spec](https://github.com/jgm/stmd)
 
-In addition we should note the [wonderful work](http://johnmacfarlane.net/babelmark2/) made by John Mac Farlane. The Web service output the differences in between the different markdown implementations. It helps a lot when searching on the most common output.
+In addition we should note the [wonderful work](http://johnmacfarlane.net/babelmark2/) made by John Mac Farlane. The Web
+service output the differences in between the different markdown implementations. It helps a lot when searching on the
+most common output.

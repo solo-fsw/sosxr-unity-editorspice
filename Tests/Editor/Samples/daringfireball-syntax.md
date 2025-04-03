@@ -11,32 +11,30 @@ Markdown: Syntax
     <li><a href="/projects/markdown/dingus" title="Online Markdown Web Form">Dingus</a></li>
 </ul>
 
-
-*   [Overview](#overview)
-    *   [Philosophy](#philosophy)
-    *   [Inline HTML](#html)
-    *   [Automatic Escaping for Special Characters](#autoescape)
-*   [Block Elements](#block)
-    *   [Paragraphs and Line Breaks](#p)
-    *   [Headers](#header)
-    *   [Blockquotes](#blockquote)
-    *   [Lists](#list)
-    *   [Code Blocks](#precode)
-    *   [Horizontal Rules](#hr)
-*   [Span Elements](#span)
-    *   [Links](#link)
-    *   [Emphasis](#em)
-    *   [Code](#code)
-    *   [Images](#img)
-*   [Miscellaneous](#misc)
-    *   [Backslash Escapes](#backslash)
-    *   [Automatic Links](#autolink)
-
+* [Overview](#overview)
+    * [Philosophy](#philosophy)
+    * [Inline HTML](#html)
+    * [Automatic Escaping for Special Characters](#autoescape)
+* [Block Elements](#block)
+    * [Paragraphs and Line Breaks](#p)
+    * [Headers](#header)
+    * [Blockquotes](#blockquote)
+    * [Lists](#list)
+    * [Code Blocks](#precode)
+    * [Horizontal Rules](#hr)
+* [Span Elements](#span)
+    * [Links](#link)
+    * [Emphasis](#em)
+    * [Code](#code)
+    * [Images](#img)
+* [Miscellaneous](#misc)
+    * [Backslash Escapes](#backslash)
+    * [Automatic Links](#autolink)
 
 **Note:** This document is itself written using Markdown; you
 can [see the source for it by adding '.text' to the URL][src].
 
-  [src]: /projects/markdown/syntax.text
+[src]: /projects/markdown/syntax.text
 
 * * *
 
@@ -54,12 +52,17 @@ filters -- including [Setext] [1], [atx] [2], [Textile] [3], [reStructuredText] 
 [Grutatext] [5], and [EtText] [6] -- the single biggest source of
 inspiration for Markdown's syntax is the format of plain text email.
 
-  [1]: http://docutils.sourceforge.net/mirror/setext.html
-  [2]: http://www.aaronsw.com/2002/atx/
-  [3]: http://textism.com/tools/textile/
-  [4]: http://docutils.sourceforge.net/rst.html
-  [5]: http://www.triptico.com/software/grutatxt.html
-  [6]: http://ettext.taint.org/doc/
+[1]: http://docutils.sourceforge.net/mirror/setext.html
+
+[2]: http://www.aaronsw.com/2002/atx/
+
+[3]: http://textism.com/tools/textile/
+
+[4]: http://docutils.sourceforge.net/rst.html
+
+[5]: http://www.triptico.com/software/grutatxt.html
+
+[6]: http://ettext.taint.org/doc/
 
 To this end, Markdown's syntax is comprised entirely of punctuation
 characters, which punctuation characters have been carefully chosen so
@@ -67,8 +70,6 @@ as to look like what they mean. E.g., asterisks around a word actually
 look like \*emphasis\*. Markdown lists look like, well, lists. Even
 blockquotes look like quoted passages of text, assuming you've ever
 used email.
-
-
 
 <h3 id="html">Inline HTML</h3>
 
@@ -119,7 +120,6 @@ link or image syntax, go right ahead.
 
 Unlike block-level HTML tags, Markdown syntax *is* processed within
 span-level tags.
-
 
 <h3 id="autoescape">Automatic Escaping for Special Characters</h3>
 
@@ -182,7 +182,6 @@ and `&` in your example code needs to be escaped.)
 
 <h2 id="block">Block Elements</h2>
 
-
 <h3 id="p">Paragraphs and Line Breaks</h3>
 
 A paragraph is simply one or more consecutive lines of text, separated
@@ -204,8 +203,9 @@ Yes, this takes a tad more effort to create a `<br />`, but a simplistic
 Markdown's email-style [blockquoting][bq] and multi-paragraph [list items][l]
 work best -- and look better -- when you format them with hard breaks.
 
-  [bq]: #blockquote
-  [l]:  #list
+[bq]: #blockquote
+
+[l]:  #list
 
 
 
@@ -244,7 +244,6 @@ determines the header level.) :
     ## This is an H2 ##
 
     ### This is an H3 ######
-
 
 <h3 id="blockquote">Blockquotes</h3>
 
@@ -294,7 +293,6 @@ and code blocks:
 Any decent text editor should make email-style quoting easy. For
 example, with BBEdit, you can make a selection and choose Increase
 Quote Level from the Text menu.
-
 
 <h3 id="list">Lists</h3>
 
@@ -443,7 +441,6 @@ to be indented *twice* -- 8 spaces or two tabs:
 
             <code goes here>
 
-
 It's worth noting that it's possible to trigger an ordered list by
 accident, by writing something like this:
 
@@ -453,8 +450,6 @@ In other words, a *number-period-space* sequence at the beginning of a
 line. To avoid this, you can backslash-escape the period:
 
     1986\. What a great season.
-
-
 
 <h3 id="precode">Code Blocks</h3>
 
@@ -519,8 +514,6 @@ Regular Markdown syntax is not processed within code blocks. E.g.,
 asterisks are just literal asterisks within a code block. This means
 it's also easy to use Markdown to write about Markdown's own syntax.
 
-
-
 <h3 id="hr">Horizontal Rules</h3>
 
 You can produce a horizontal rule tag (`<hr />`) by placing three or
@@ -537,7 +530,6 @@ following lines will produce a horizontal rule:
     - - -
 
     ---------------------------------------
-
 
 * * *
 
@@ -587,13 +579,13 @@ on a line by itself:
 
 That is:
 
-*   Square brackets containing the link identifier (optionally
-    indented from the left margin using up to three spaces);
-*   followed by a colon;
-*   followed by one or more spaces (or tabs);
-*   followed by the URL for the link;
-*   optionally followed by a title attribute for the link, enclosed
-    in double or single quotes, or enclosed in parentheses.
+* Square brackets containing the link identifier (optionally
+  indented from the left margin using up to three spaces);
+* followed by a colon;
+* followed by one or more spaces (or tabs);
+* followed by the URL for the link;
+* optionally followed by a title attribute for the link, enclosed
+  in double or single quotes, or enclosed in parentheses.
 
 The following three link definitions are equivalent:
 
@@ -643,7 +635,7 @@ multiple words in the link text:
 	Visit [Daring Fireball][] for more information.
 
 And then define the link:
-	
+
 	[Daring Fireball]: http://daringfireball.net/
 
 Link definitions can be placed anywhere in your Markdown document. I
@@ -697,7 +689,6 @@ allowing you to move the markup-related metadata out of the paragraph,
 you can add links without interrupting the narrative flow of your
 prose.
 
-
 <h3 id="em">Emphasis</h3>
 
 Markdown treats asterisks (`*`) and underscores (`_`) as indicators of
@@ -738,8 +729,6 @@ would otherwise be used as an emphasis delimiter, you can backslash
 escape it:
 
     \*this text is surrounded by literal asterisks\*
-
-
 
 <h3 id="code">Code</h3>
 
@@ -795,8 +784,6 @@ to produce:
     <p><code>&amp;#8212;</code> is the decimal-encoded
     equivalent of <code>&amp;mdash;</code>.</p>
 
-
-
 <h3 id="img">Images</h3>
 
 Admittedly, it's fairly difficult to devise a "natural" syntax for
@@ -813,12 +800,12 @@ Inline image syntax looks like this:
 
 That is:
 
-*   An exclamation mark: `!`;
-*   followed by a set of square brackets, containing the `alt`
-    attribute text for the image;
-*   followed by a set of parentheses, containing the URL or path to
-    the image, and an optional `title` attribute enclosed in double
-    or single quotes.
+* An exclamation mark: `!`;
+* followed by a set of square brackets, containing the `alt`
+  attribute text for the image;
+* followed by a set of parentheses, containing the URL or path to
+  the image, and an optional `title` attribute enclosed in double
+  or single quotes.
 
 Reference-style image syntax looks like this:
 
@@ -841,10 +828,12 @@ use regular HTML `<img>` tags.
 
 <h3 id="autolink">Automatic Links</h3>
 
-Markdown supports a shortcut style for creating "automatic" links for URLs and email addresses: simply surround the URL or email address with angle brackets. What this means is that if you want to show the actual text of a URL or email address, and also have it be a clickable link, you can do this:
+Markdown supports a shortcut style for creating "automatic" links for URLs and email addresses: simply surround the URL
+or email address with angle brackets. What this means is that if you want to show the actual text of a URL or email
+address, and also have it be a clickable link, you can do this:
 
     <http://example.com/>
-    
+
 Markdown will turn this into:
 
     <a href="http://example.com/">http://example.com/</a>
@@ -869,8 +858,6 @@ which will render in a browser as a clickable link to "address@example.com".
 most, address-harvesting bots, but it definitely won't fool all of
 them. It's better than nothing, but an address published in this way
 will probably eventually start receiving spam.)
-
-
 
 <h3 id="backslash">Backslash Escapes</h3>
 

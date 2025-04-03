@@ -3,7 +3,7 @@
 Adds support for task lists:
 
 ## TaskLists
- 
+
 A task list item consist of `[ ]` or `[x]` or `[X]` inside a list item (ordered or unordered)
 
 ```````````````````````````````` example

@@ -1,4 +1,5 @@
 # Unity Markdown Viewer (UMV)
+
 > A markdown viewer for unity
 
 UMV is a Unity editor extension for displaying markdown files in the inspector window.
@@ -6,6 +7,7 @@ UMV is a Unity editor extension for displaying markdown files in the inspector w
 It should _just work_ without any setup or configuration.
 
 ## Installation
+
 1. Open the Unity project you want to install this package in.
 2. Open the Package Manager window.
 3. Click on the `+` button and select `Add package from git URL...`.

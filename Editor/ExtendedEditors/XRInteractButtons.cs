@@ -4,7 +4,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 
-namespace SOSXR.EditorTools
+namespace SOSXR.EditorSpice
 {
     public static class XRInteractButtons
     {

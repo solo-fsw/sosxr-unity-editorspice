@@ -4,7 +4,6 @@
 
 Use the `printf()` function.
 
-
 ## Block
 
 ```
@@ -22,7 +21,6 @@ function SomeCodeHere()
     // ...
 }
 ```
-
 
 ## Escaped Backticks
 

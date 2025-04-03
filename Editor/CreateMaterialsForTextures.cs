@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 
-namespace SOSXR.EditorTools
+namespace SOSXR.EditorSpice
 {
     /// <summary>
     ///     From: https://answers.unity.com/questions/745917/is-it-possible-to-automate-material-creation-with.html

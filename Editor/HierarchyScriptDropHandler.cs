@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 
 
-namespace SOSXR.EditorTools
+namespace SOSXR.EditorSpice
 {
     /// <summary>
     ///     From Warped Imagination: https://www.youtube.com/watch?v=FpOAcfULmTE

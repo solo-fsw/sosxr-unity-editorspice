@@ -3,8 +3,9 @@
 Adds support for diagrams extension:
 
 ## Mermaid diagrams
- 
-Using a fenced code block with the `mermaid` language info will output a `<div class='mermaid'>` instead of a `pre/code` block:
+
+Using a fenced code block with the `mermaid` language info will output a `<div class='mermaid'>` instead of a `pre/code`
+block:
 
 ```````````````````````````````` example
 ```mermaid
@@ -25,7 +26,8 @@ graph TD;
 
 ## nomnoml diagrams
 
-Using a fenced code block with the `nomnoml` language info will output a `<div class='nomnoml'>` instead of a `pre/code` block:
+Using a fenced code block with the `nomnoml` language info will output a `<div class='nomnoml'>` instead of a `pre/code`
+block:
 
 ```````````````````````````````` example
 ```nomnoml

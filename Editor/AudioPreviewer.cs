@@ -5,7 +5,7 @@ using UnityEditor.Callbacks;
 using UnityEngine;
 
 
-namespace SOSXR.EditorTools
+namespace SOSXR.EditorSpice
 {
     /// <summary>
     ///     Based on Warped Imagination: https://youtu.be/Gd8M1Ychis8?si=8QNBxDnJG4W1X8Cz

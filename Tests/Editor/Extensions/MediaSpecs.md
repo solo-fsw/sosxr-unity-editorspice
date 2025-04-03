@@ -3,7 +3,7 @@
 Adds support for media links:
 
 ## Media links
- 
+
 Allows to embed audio/video links to popular website:
 
 ```````````````````````````````` example

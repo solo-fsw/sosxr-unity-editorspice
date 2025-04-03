@@ -6,8 +6,9 @@ This section describes the different extensions supported:
 
 Abbreviation can be declared by using the `*[Abbreviation Label]: Abbreviation description`
 
-Abbreviation definition will be removed from the original document. Any Abbreviation label found in literals will be replaced by the abbreviation description:
- 
+Abbreviation definition will be removed from the original document. Any Abbreviation label found in literals will be
+replaced by the abbreviation description:
+
 ```````````````````````````````` example
 *[HTML]: Hypertext Markup Language
 
@@ -17,7 +18,7 @@ Later in a text we are using HTML and it becomes an abbr tag HTML
 ````````````````````````````````
 
 An abbreviation definition can be indented at most 3 spaces
- 
+
 ```````````````````````````````` example
 *[HTML]: Hypertext Markup Language
     *[This]: is not an abbreviation
@@ -27,7 +28,7 @@ An abbreviation definition can be indented at most 3 spaces
 ````````````````````````````````
 
 An abbreviation may contain spaces:
- 
+
 ```````````````````````````````` example
 *[SUPER HTML]: Super Hypertext Markup Language
 

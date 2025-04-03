@@ -3,7 +3,7 @@
 Adds support for outputing bootstrap ready tags:
 
 ## Bootstrap
- 
+
 Adds bootstrap `.table` class to `<table>`:
 
 ```````````````````````````````` example

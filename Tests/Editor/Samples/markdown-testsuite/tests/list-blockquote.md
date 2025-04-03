@@ -1,3 +1,3 @@
-*   a list containing a blockquote
+* a list containing a blockquote
 
-    > this the blockquote in the list
+  > this the blockquote in the list

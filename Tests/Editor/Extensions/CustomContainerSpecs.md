@@ -4,7 +4,9 @@ This section describes the different extensions supported:
 
 ## Custom Container
 
-A custom container is similar to a fenced code block, but it is using the character `:` to declare a block (with at least 3 characters), and instead of generating a `<pre><code>...</code></pre>` it will generate a `<div>...</div>` block.
+A custom container is similar to a fenced code block, but it is using the character `:` to declare a block (with at
+least 3 characters), and instead of generating a `<pre><code>...</code></pre>` it will generate a `<div>...</div>`
+block.
 
 ```````````````````````````````` example
 :::spoiler
@@ -26,8 +28,8 @@ This is a regular div
 </div>
 ````````````````````````````````
 
-Like for fenced code block, you can use more than 3 `:` characters as long as the closing has the same number of characters:
-
+Like for fenced code block, you can use more than 3 `:` characters as long as the closing has the same number of
+characters:
 
 ```````````````````````````````` example
 ::::::::::::spoiler
@@ -62,7 +64,8 @@ Like for fenced code block, a custom container can span over multiple empty line
 </ul>
 ````````````````````````````````
 
-Attributes extension is also supported for Custom Container, as long as the Attributes extension is activated after the CustomContainer extension (`.UseCustomContainer().UseAttributes()`)
+Attributes extension is also supported for Custom Container, as long as the Attributes extension is activated after the
+CustomContainer extension (`.UseCustomContainer().UseAttributes()`)
 
 ```````````````````````````````` example
 :::spoiler {#myspoiler myprop=yes}
@@ -84,9 +87,10 @@ The content of a custom container can contain any blocks:
 </div>
 ````````````````````````````````
 
-## Inline Custom Container 
+## Inline Custom Container
 
-A custom container can also be used within an inline container (e.g: paragraph, heading...) by enclosing a text by a new emphasis `::`
+A custom container can also be used within an inline container (e.g: paragraph, heading...) by enclosing a text by a new
+emphasis `::`
 
 ```````````````````````````````` example
 This is a text ::with special emphasis::
@@ -103,7 +107,6 @@ This is a text ::with special *emphasis*::
 ````````````````````````````````
 
 Attributes can be attached to a inline custom container:
-
 
 ```````````````````````````````` example
 This is a text ::with special emphasis::{#myId .myemphasis}

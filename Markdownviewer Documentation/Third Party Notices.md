@@ -6,14 +6,12 @@ This package contains third-party software components governed by the license(s)
 * https://github.com/lunet-io/markdig
 * License: [BSD 2-Clause "Simplified"](https://github.com/lunet-io/markdig/blob/master/license.txt)
 
-
 ## Google Roboto Font
 
 Apache License v2.0
 
 https://fonts.google.com/specimen/Roboto/about?query=roboto
 https://www.apache.org/licenses/LICENSE-2.0
-
 
 ## JetBrains Mono Font
 

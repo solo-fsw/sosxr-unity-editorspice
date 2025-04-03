@@ -5,6 +5,7 @@ This section describes the different extensions supported:
 ## Generic Attributes
 
 Attributes can be attached to:
+
 - The previous inline element if the previous element is not a literal
 - The next block if the current block is a paragraph and the attributes is the only inline present in the paragraph
 - Or the current block
@@ -36,7 +37,8 @@ This is a paragraph with an attached attributes {#myparagraph attached-bool-prop
 <p id="myparagraph" attached-bool-property attached-bool-property2>This is a paragraph with an attached attributes </p>
 ````````````````````````````````
 
-The following shows that attributes can be attached to the next block if they are used inside a single line just preceding the block (and preceded by a blank line or beginning of a block container):
+The following shows that attributes can be attached to the next block if they are used inside a single line just
+preceding the block (and preceded by a blank line or beginning of a block container):
 
 ```````````````````````````````` example
 {#fenced-id .fenced-class}

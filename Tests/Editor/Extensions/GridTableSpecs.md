@@ -4,7 +4,8 @@ This section describes the different extensions supported:
 
 ## Grid Table
 
-A grid table allows to have multiple lines per cells and allows to span cells over multiple columns. The following shows a simple grid table  
+A grid table allows to have multiple lines per cells and allows to span cells over multiple columns. The following shows
+a simple grid table
 
 ```
 +---------+---------+
@@ -25,17 +26,19 @@ A grid table allows to have multiple lines per cells and allows to span cells ov
 ```
 
 **Rule #1**
-The first line of a grid table must a **row separator**. It must start with the column separator character `+` used to separate columns in a row separator. Each column separator is:
-  - starting by optional spaces
-  - followed by an optional `:` to specify left align, followed by optional spaces
-  - followed by a sequence of at least one `-` character, followed by optional spaces
-  - followed by an optional `:` to specify right align (or center align if left align is also defined)
-  - ending by optional spaces
+The first line of a grid table must a **row separator**. It must start with the column separator character `+` used to
+separate columns in a row separator. Each column separator is:
 
-The first row separator must be followed by a *regular row*. A regular row must start with the character `|` that is starting at the same position than the column separator `+` of the first row separator.
+- starting by optional spaces
+- followed by an optional `:` to specify left align, followed by optional spaces
+- followed by a sequence of at least one `-` character, followed by optional spaces
+- followed by an optional `:` to specify right align (or center align if left align is also defined)
+- ending by optional spaces
 
+The first row separator must be followed by a *regular row*. A regular row must start with the character `|` that is
+starting at the same position than the column separator `+` of the first row separator.
 
-The following is a valid row separator 
+The following is a valid row separator
 
 ```````````````````````````````` example
 +---------+---------+
@@ -53,8 +56,8 @@ The following is a valid row separator
 </table>
 ````````````````````````````````
 
+The following is not a valid row separator
 
-The following is not a valid row separator 
 ```````````````````````````````` example
 |-----xxx----+---------+
 | This is    | not a table
@@ -64,7 +67,8 @@ The following is not a valid row separator
 ````````````````````````````````
 
 **Rule #2**
-A regular row can continue a previous regular row when column separator `|` are positioned at the same  position than the previous line. If they are positioned at the same location, the column may span over multiple columns:
+A regular row can continue a previous regular row when column separator `|` are positioned at the same position than the
+previous line. If they are positioned at the same location, the column may span over multiple columns:
 
 ```````````````````````````````` example
 +---------+---------+---------+
@@ -134,9 +138,10 @@ The last column separator `|` may be omitted:
 </table>
 ````````````````````````````````
 
-The respective width of the columns are calculated from the ratio between the total size of the first table row without counting the `+`: `+----+--------+----+` would be divided between:
+The respective width of the columns are calculated from the ratio between the total size of the first table row without
+counting the `+`: `+----+--------+----+` would be divided between:
 
-Total size is : 16 
+Total size is : 16
 
 - `----` -> 4
 - `--------` -> 8
@@ -165,7 +170,6 @@ So the width would be 4/16 = 25%, 8/16 = 50%, 4/16 = 25%
 
 Alignment might be specified on the first row using the character `:`:
 
-
 ```````````````````````````````` example
 +-----+:---:+-----+
 |  A  |  B  |  C  |
@@ -185,7 +189,7 @@ Alignment might be specified on the first row using the character `:`:
 </table>
 ````````````````````````````````
 
- A grid table may have cells spanning both columns and rows:
+A grid table may have cells spanning both columns and rows:
 
 ```````````````````````````````` example
 +---+---+---+
@@ -275,7 +279,6 @@ A grid table may not have irregularly shaped cells:
 ````````````````````````````````
 
 An empty `+` on a line should result in a simple empty list output:
-
 
 ```````````````````````````````` example
 +

@@ -66,7 +66,7 @@ If the heading is all stripped by the previous rules, the id `section` will be u
 <h1 id="section-1">1.0 &amp; ^ % *</h1>
 ````````````````````````````````
 
-When the options "AutoLink" is setup, it is possible to link to an existing heading by using the 
+When the options "AutoLink" is setup, it is possible to link to an existing heading by using the
 exact same Label text as the heading:
 
 ```````````````````````````````` example

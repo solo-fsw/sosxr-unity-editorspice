@@ -3,7 +3,7 @@
 The following the figure extension:
 
 ## Figures
- 
+
 A figure can be defined by using a pattern equivalent to a fenced code block but with the character `^`
 
 ```````````````````````````````` example

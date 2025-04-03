@@ -4,7 +4,7 @@ using UnityEditor.PackageManager;
 using Debug = UnityEngine.Debug;
 
 
-namespace SOSXR.EditorTools
+namespace SOSXR.EditorSpice
 {
     [InitializeOnLoad]
     public static class PackageIsInstalled
@@ -36,7 +36,7 @@ namespace SOSXR.EditorTools
 
         private static void OnPackagesChanged(PackageRegistrationEventArgs args)
         {
-            Debug.Log("We have a package change, clearing cache");
+            // Debug.Log("We have a package change, clearing cache");
 
             // Clear the cache when packages change
             Cache.Clear();

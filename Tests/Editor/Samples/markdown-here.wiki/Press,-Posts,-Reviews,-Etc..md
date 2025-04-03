@@ -52,7 +52,6 @@ Mozilla reviews: https://addons.mozilla.org/en-US/firefox/addon/markdown-here/#r
 
 [Evernote-Web – Markdown-Erweiterung](http://www.notieren.de/evernote-web-markdown-erweiterung/) [notieren.de; German]
 
-
 ## Shorter posts about Markdown Here
 
 https://plus.google.com/106557483623231970995/posts/DgfHXQCnxP4 [Jesse Wilson]

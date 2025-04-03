@@ -3,7 +3,7 @@
 The following additional list items are supported:
 
 ## Ordered list with alpha letter
- 
+
 Allows to use a list using an alpha letter instead of a number
 
 ```````````````````````````````` example
@@ -18,7 +18,7 @@ c. Last item
 </ol>
 ````````````````````````````````
 
-It works also for uppercase alpha: 
+It works also for uppercase alpha:
 
 ```````````````````````````````` example
 A. First item
@@ -63,7 +63,7 @@ A. First item2
 ## Ordered list with roman letter
 
 Allows to use a list using a roman number instead of a number.
- 
+
 ```````````````````````````````` example
 i. First item
 ii. Second item
@@ -78,8 +78,8 @@ iv. Last item
 </ol>
 ````````````````````````````````
 
-It works also for uppercase alpha: 
- 
+It works also for uppercase alpha:
+
 ```````````````````````````````` example
 I. First item
 II. Second item

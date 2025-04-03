@@ -3,13 +3,18 @@
 This section describes the different extensions supported:
 
 ## Globalization
-Adds support for RTL content by adding `dir="rtl"` and `align="right` attributes to the appropriate html elements. Left to right text is not affected by this extension.
 
-Whether a markdown block is marked as RTL or not is determined by the [first strong character](https://en.wikipedia.org/wiki/Bi-directional_text#Strong_characters) of the block.
+Adds support for RTL content by adding `dir="rtl"` and `align="right` attributes to the appropriate html elements. Left
+to right text is not affected by this extension.
 
-**Note**: You might need to add `<meta charset="UTF-8">` to the head of the html file to be able to see the result correctly.
+Whether a markdown block is marked as RTL or not is determined by
+the [first strong character](https://en.wikipedia.org/wiki/Bi-directional_text#Strong_characters) of the block.
+
+**Note**: You might need to add `<meta charset="UTF-8">` to the head of the html file to be able to see the result
+correctly.
 
 Headings and block quotes:
+
 ```````````````````````````````` example
 # Fruits
 In botany, a [fruit](https://en.wikipedia.org/wiki/Fruit) is the seed-bearing structure in flowering plants (also known as angiosperms) formed from the ovary after flowering.
@@ -38,6 +43,7 @@ In botany, a [fruit](https://en.wikipedia.org/wiki/Fruit) is the seed-bearing st
 ````````````````````````````````
 
 Lists:
+
 ```````````````````````````````` example
 ## Types of fruits
 - Berries

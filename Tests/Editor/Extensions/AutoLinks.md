@@ -6,11 +6,11 @@ This section describes the different extensions supported:
 
 Autolinks will format as a HTML link any string that starts by:
 
-- `http://` or `https://` 
+- `http://` or `https://`
 - `ftp://`
 - `mailto:`
-- `www.` 
- 
+- `www.`
+
 ```````````````````````````````` example
 This is a http://www.google.com URL and https://www.google.com
 This is a ftp://test.com
@@ -24,7 +24,7 @@ And a plain <a href="http://www.google.com">www.google.com</a></p>
 ````````````````````````````````
 
 But incomplete links will not be matched:
- 
+
 ```````````````````````````````` example
 This is not a http:/www.google.com URL and https:/www.google.com
 This is not a ftp:/test.com
@@ -38,7 +38,7 @@ And not a plain www. or a www.x</p>
 ````````````````````````````````
 
 Previous character must be a punctuation or a valid space (tab, space, new line):
- 
+
 ```````````````````````````````` example
 This is not a nhttp://www.google.com URL but this is (https://www.google.com)
 .
@@ -46,38 +46,40 @@ This is not a nhttp://www.google.com URL but this is (https://www.google.com)
 ````````````````````````````````
 
 An autolink should not interfere with an `<a>` HTML inline:
- 
+
 ```````````````````````````````` example
 This is an HTML <a href="http://www.google.com">http://www.google.com</a> link
 .
 <p>This is an HTML <a href="http://www.google.com">http://www.google.com</a> link</p>
 ````````````````````````````````
+
 or even within emphasis:
- 
+
 ```````````````````````````````` example
 This is an HTML <a href="http://www.google.com"> **http://www.google.com** </a> link
 .
 <p>This is an HTML <a href="http://www.google.com"> <strong>http://www.google.com</strong> </a> link</p>
 ````````````````````````````````
 
-
 An autolink should not interfere with a markdown link:
- 
+
 ```````````````````````````````` example
 This is an HTML [http://www.google.com](http://www.google.com) link
 .
 <p>This is an HTML <a href="http://www.google.com">http://www.google.com</a> link</p>
 ````````````````````````````````
 
-A link embraced by pending emphasis should let the emphasis takes precedence if characters are placed at the end of the matched link:
- 
+A link embraced by pending emphasis should let the emphasis takes precedence if characters are placed at the end of the
+matched link:
+
 ```````````````````````````````` example
 Check **http://www.a.com** or __http://www.b.com__
 .
 <p>Check <strong><a href="http://www.a.com">http://www.a.com</a></strong> or <strong><a href="http://www.b.com">http://www.b.com</a></strong></p>
 ````````````````````````````````
 
-It is not mentioned by the spec, but empty emails won't be matched (only a subset of [RFC2368](https://tools.ietf.org/html/rfc2368) is supported by auto links):
+It is not mentioned by the spec, but empty emails won't be matched (only a subset
+of [RFC2368](https://tools.ietf.org/html/rfc2368) is supported by auto links):
 
 ```````````````````````````````` example
 mailto:email@test.com is okay, but mailto:@test.com is not
@@ -110,7 +112,6 @@ Visit www.commonmark.org/a.b.
 <p>Visit <a href="http://www.commonmark.org/a.b">www.commonmark.org/a.b</a>.</p>
 ````````````````````````````````
 
-
 ```````````````````````````````` example
 www.google.com/search?q=Markup+(business)
 
@@ -120,7 +121,6 @@ www.google.com/search?q=Markup+(business)
 <p>(<a href="http://www.google.com/search?q=Markup+(business)">www.google.com/search?q=Markup+(business)</a>)</p>
 ````````````````````````````````
 
-
 ```````````````````````````````` example
 www.google.com/search?q=commonmark&hl=en
 
@@ -129,7 +129,6 @@ www.google.com/search?q=commonmark&hl;
 <p><a href="http://www.google.com/search?q=commonmark&amp;hl=en">www.google.com/search?q=commonmark&amp;hl=en</a></p>
 <p><a href="http://www.google.com/search?q=commonmark">www.google.com/search?q=commonmark</a>&amp;hl;</p>
 ````````````````````````````````
-
 
 ```````````````````````````````` example
 www.commonmark.org/he<lp

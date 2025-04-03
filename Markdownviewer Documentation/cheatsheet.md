@@ -1,7 +1,7 @@
 ﻿# Markdown Cheat Sheet
 
-
 ## Formatting
+
 Paragraphs are separated by a blank line.
 
 Emphasis is given with *italic*, **bold**, and `monospace`.
@@ -11,11 +11,12 @@ Emphasis is given with *italic*, **bold**, and `monospace`.
 ```
 
 ## Lists
+
 Itemized lists
 
-  * item 1
-  * item 2
-  * and so one ...
+* item 1
+* item 2
+* and so one ...
 
 ```
 Itemized lists
@@ -29,6 +30,7 @@ Itemized lists
 ## Headers
 
 Section headers either start with a # ...
+
 ```
 # h1
 ## h2
@@ -44,6 +46,7 @@ h1
 h2
 ----------------
 ```
+
 ## Block Quotes
 
 > Block quotes are
@@ -59,7 +62,6 @@ h2
 > They can span multiple paragraphs,
 > if you like.
 ```
-
 
 ## Code
 
@@ -77,32 +79,30 @@ void DoSomethingCool()
 
 Syntax highlighting will be supported in future versions :)
 
-
 ## Nesting
 
 You can nest items in a list ...
 
- 1. First, get these ingredients:
+1. First, get these ingredients:
 
-      * carrots
-      * celery
-      * lentils
+    * carrots
+    * celery
+    * lentils
 
- 2. Boil some water.
+2. Boil some water.
 
- 3. Dump everything in the pot and follow
-    this algorithm:
+3. Dump everything in the pot and follow
+   this algorithm:
 
-        find wooden spoon
-        uncover pot
-        stir
-        cover pot
-        balance wooden spoon precariously on pot handle
-        wait 10 minutes
-        goto first step (or shut off burner when done)
+       find wooden spoon
+       uncover pot
+       stir
+       cover pot
+       balance wooden spoon precariously on pot handle
+       wait 10 minutes
+       goto first step (or shut off burner when done)
 
-    Do not bump wooden spoon or it will fall.
-
+   Do not bump wooden spoon or it will fall.
 
 ## Horizontal Line
 
@@ -111,6 +111,7 @@ You can insert a line with ` ---`
 ```
 ---
 ```
+
 ---
 
 ## Links
@@ -120,7 +121,6 @@ Here is a link to the [readme](readme.md) file
 An an external link to the [unity documentation](https://unity3d.com/)
 
 An link to [the top](#markdown-cheat-sheet) of this document (section header)
-
 
 ```
 Here is a link to the [readme](readme.md) file

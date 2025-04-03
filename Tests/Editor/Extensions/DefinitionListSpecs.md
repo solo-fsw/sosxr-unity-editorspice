@@ -4,7 +4,9 @@ This section describes the different extensions supported:
 
 ## Definition lists
 
-A custom container is similar to a fenced code block, but it is using the character `:` to declare a block (with at least 3 characters), and instead of generating a `<pre><code>...</code></pre>` it will generate a `<div>...</dib>` block.
+A custom container is similar to a fenced code block, but it is using the character `:` to declare a block (with at
+least 3 characters), and instead of generating a `<pre><code>...</code></pre>` it will generate a `<div>...</dib>`
+block.
 
 ```````````````````````````````` example
 
@@ -72,7 +74,7 @@ with lazy continuation.</p>
 </dl>
 ````````````````````````````````
 
-The definition must be indented to 4 characters including the `:`. 
+The definition must be indented to 4 characters including the `:`.
 
 ```````````````````````````````` example
 Term 1

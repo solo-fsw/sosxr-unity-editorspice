@@ -4,11 +4,10 @@ using UnityEditor;
 using UnityEngine;
 
 
-namespace SOSXR.EditorTools
+namespace SOSXR.EditorSpice
 {
     /// <summary>
-    ///     From Warped Imagination: https://www.youtube.com/watch?v=SY_SdcPW8vE
-    ///     With great help from ChatGPT
+    ///     Based on Warped Imagination: https://www.youtube.com/watch?v=SY_SdcPW8vE
     /// </summary>
     public class SetIconWindow : EditorWindow
     {

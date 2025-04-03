@@ -7,15 +7,19 @@ This section describes the different extensions supported:
 A pipe table is detected when:
 
 **Rule #1**
-- Each line of a paragraph block have to contain at least a **column delimiter** `|` that is not embedded by either a code inline (backstick \`) or a HTML inline.
-- The second row must separate the first header row from sub-sequent rows by containing a **header column separator** for each column separated by a column delimiter. A header column separator is:
-  - starting by optional spaces
-  - followed by an optional `:` to specify left align
-  - followed by a sequence of at least one `-` character
-  - followed by an optional `:` to specify right align (or center align if left align is also defined)
-  - ending by optional spaces
- 
-Because a list has a higher precedence than a pipe table, a table header row separator requires at least 2 dashes `--` to start a header row:
+
+- Each line of a paragraph block have to contain at least a **column delimiter** `|` that is not embedded by either a
+  code inline (backstick \`) or a HTML inline.
+- The second row must separate the first header row from sub-sequent rows by containing a **header column separator**
+  for each column separated by a column delimiter. A header column separator is:
+    - starting by optional spaces
+    - followed by an optional `:` to specify left align
+    - followed by a sequence of at least one `-` character
+    - followed by an optional `:` to specify right align (or center align if left align is also defined)
+    - ending by optional spaces
+
+Because a list has a higher precedence than a pipe table, a table header row separator requires at least 2 dashes `--`
+to start a header row:
 
 ```````````````````````````````` example
 a | b
@@ -100,7 +104,8 @@ a | b
 </table>
 ````````````````````````````````
 
-But if a table doesn't start with a column delimiter, it is not interpreted as a table, even if following lines have a column delimiter
+But if a table doesn't start with a column delimiter, it is not interpreted as a table, even if following lines have a
+column delimiter
 
 ```````````````````````````````` example
 a b
@@ -187,7 +192,8 @@ a          | b              |
 ````````````````````````````````
 
 **Rule #4**
-Column delimiters `|` at the very beginning of a line or just before a line ending with only spaces and/or terminated by a newline can be omitted
+Column delimiters `|` at the very beginning of a line or just before a line ending with only spaces and/or terminated by
+a newline can be omitted
 
 ```````````````````````````````` example
   a     | b     |
@@ -287,9 +293,7 @@ a|b|
 </table>
 ````````````````````````````````
 
-
-
-Single column table can be declared with lines starting only by a column delimiter: 
+Single column table can be declared with lines starting only by a column delimiter:
 
 ```````````````````````````````` example
 | a
@@ -316,14 +320,15 @@ Single column table can be declared with lines starting only by a column delimit
 
 **Rule #5**
 
-The first row is considered as a **header row** if it is separated from the regular rows by a row containing a **header column separator** for each column. A header column separator is:
+The first row is considered as a **header row** if it is separated from the regular rows by a row containing a **header
+column separator** for each column. A header column separator is:
 
 - starting by optional spaces
 - followed by an optional `:` to specify left align
 - followed by a sequence of at least one `-` character
 - followed by an optional `:` to specify right align (or center align if left align is also defined)
 - ending by optional spaces
- 
+
 ```````````````````````````````` example
  a     | b 
 -------|-------
@@ -350,10 +355,11 @@ The first row is considered as a **header row** if it is separated from the regu
 </table>
 ````````````````````````````````
 
-The text alignment is defined by default to be center for header and left for cells. If the left alignment is applied, it will force the column heading to be left aligned.
+The text alignment is defined by default to be center for header and left for cells. If the left alignment is applied,
+it will force the column heading to be left aligned.
 There is no way to define a different alignment for heading and cells (apart from the default).
 The text alignment can be changed by using the character `:` with the header column separator:
- 
+
 ```````````````````````````````` example
  a     | b       | c 
 :------|:-------:| ----:
@@ -409,7 +415,7 @@ Test alignment with starting and ending pipes:
 ````````````````````````````````
 
 The following example shows a non matching header column separator:
- 
+
 ```````````````````````````````` example
  a     | b
 -------|---x---
@@ -425,7 +431,7 @@ The following example shows a non matching header column separator:
 **Rule #6**
 
 A column delimiter has a higher priority than emphasis delimiter
- 
+
 ```````````````````````````````` example
  *a*   | b
 -----  |-----
@@ -455,7 +461,7 @@ A column delimiter has a higher priority than emphasis delimiter
 **Rule #7**
 
 A backstick/code delimiter has a higher precedence than a column delimiter `|`:
- 
+
 ```````````````````````````````` example
 a | b `
 0 | ` 
@@ -465,8 +471,8 @@ a | b `
 
 **Rule #7**
 
-A HTML inline has a higher precedence than a column delimiter `|`: 
- 
+A HTML inline has a higher precedence than a column delimiter `|`:
+
 ```````````````````````````````` example
 a <a href="" title="|"></a> | b
 -- | --
@@ -589,7 +595,6 @@ Tests trailing spaces after pipes
 ** Normalized columns count **
 
 The tables are normalized to the maximum number of columns found in a table
-
 
 ```````````````````````````````` example
 a | b

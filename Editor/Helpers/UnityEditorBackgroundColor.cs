@@ -2,7 +2,7 @@ using UnityEditor;
 using UnityEngine;
 
 
-namespace SOSXR.EditorTools.Helpers
+namespace SOSXR.EditorSpice.Helpers
 {
     public static class UnityEditorBackgroundColor
     {

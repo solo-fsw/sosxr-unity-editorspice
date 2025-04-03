@@ -1,1 +1,1 @@
- This is a paragraph with a trailing and leading space. 
+This is a paragraph with a trailing and leading space. 

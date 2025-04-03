@@ -3,7 +3,7 @@ using UnityEditor.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 
-namespace SOSXR.EditorTools
+namespace SOSXR.EditorSpice
 {
     [CustomEditor(typeof(XRGazeInteractor))]
     public class XRGazeInteractorExtendedEditor : EditorGUIHelpers

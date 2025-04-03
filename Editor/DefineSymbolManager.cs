@@ -3,7 +3,7 @@ using UnityEditor.Build;
 using UnityEngine;
 
 
-namespace SOSXR.EditorTools
+namespace SOSXR.EditorSpice
 {
     [InitializeOnLoad]
     public class DefineSymbolManager
@@ -72,7 +72,7 @@ namespace SOSXR.EditorTools
             {
                 // Debug.LogFormat("Deleted asset: {0}", deletedAsset);
 
-                if (!deletedAsset.Contains("SOSXR_EditorTools"))
+                if (!deletedAsset.Contains("SOSXR_EditorSpice"))
                 {
                     continue;
                 }
