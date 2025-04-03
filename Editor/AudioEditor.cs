@@ -6,8 +6,6 @@ using UnityEngine;
 
 namespace SOSXR.EditorSpice
 {
-
-
     /// <summary>
     ///     Audio clip editor window that supports trimming, fading, and previewing audio files
     ///     Based on Simblend: https://github.com/SimblendGames/Simblend-Editor
