@@ -8,6 +8,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 ## Fixed
 
 - Path in demo video
+- Unity Version "6000.0"
 
 ## [0.3.1] 02-04-2025
 
