@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-
 namespace SOSXR.EditorSpice.EditorScripts
 {
     /// <summary>
@@ -27,13 +26,11 @@ namespace SOSXR.EditorSpice.EditorScripts
             EditorApplication.update += OnEditorUpdate;
         }
 
-
         private static readonly bool IncludeScripts = true;
         private static readonly bool KeepIconsForPrefabs = false;
 
         private static bool _hierarchyHasFocus;
         private static EditorWindow _hierarchyEditorWindow;
-
 
         /// <summary>
         ///     Runs every time the editor updates
@@ -47,7 +44,6 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             _hierarchyHasFocus = EditorWindow.focusedWindow != null && EditorWindow.focusedWindow == _hierarchyEditorWindow;
         }
-
 
         private static void OnHierarchyWindowItemOnGUI(UnityEngine.EntityId instanceID, Rect selectionRect)
         {
@@ -69,7 +65,6 @@ namespace SOSXR.EditorSpice.EditorScripts
             {
                 return;
             }
-
 
             GUIContent content;
             Component component = null; // components[0] is the Transform. This does mean that the 'most interesting / important' component should be the first one that is not the Transform component
