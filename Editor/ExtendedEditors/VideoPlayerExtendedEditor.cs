@@ -81,31 +81,39 @@ namespace SOSXR.EditorSpice.EditorScripts
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-
-            if (DrawPlayButton(_targetObject))
-            {
-                return;
-            }
-
-            if (DrawPauseButton(_targetObject))
-            {
-                return;
-            }
-
-            if (DrawStopButton(_targetObject))
-            {
-                return;
-            }
+            // Always close the layout group and restore the colour, even when a button asks to abort.
+            // Returning inside the group broke the layout and left GUI.backgroundColor yellow.
+            // Non-short-circuit '|': every button is drawn every event, so IMGUI control counts stay stable
+            var abort = DrawPlayButton(_targetObject)
+                        | DrawPauseButton(_targetObject)
+                        | DrawStopButton(_targetObject);
 
             GUI.backgroundColor = _originalColor;
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
+            if (abort)
+            {
+                return;
+            }
+
             DrawTimeControls();
             DrawControlsSection();
 
-            Repaint();
+            // Only repaint continuously while the clip plays, so the current time updates
+            if (_targetObject.isPlaying)
+            {
+                Repaint();
+            }
+        }
+
+
+        protected override void OnDisable()
+        {
+            StopMonitoringPlayback();
+            GUI.backgroundColor = _originalColor;
+            base.OnDisable();
         }
 
 

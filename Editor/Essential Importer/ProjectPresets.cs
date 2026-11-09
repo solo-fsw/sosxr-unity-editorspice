@@ -221,13 +221,19 @@ namespace SOSXR.EditorSpice.EditorScripts
 
                 var preset = AssetDatabase.LoadAssetAtPath<Preset>(path);
 
+                if (preset == null)
+                {
+                    continue;
+                }
+
                 var type = preset.GetPresetType();
 
                 var list = new List<DefaultPreset>(Preset.GetDefaultPresetsForType(type));
 
+                // Already registered: skip this preset only, keep processing the rest
                 if (list.Any(defaultPreset => defaultPreset.preset == preset))
                 {
-                    return;
+                    continue;
                 }
 
                 var presetFilter = preset.name.Replace("_SOSXR_Default", "").Trim().Split('_').Last();

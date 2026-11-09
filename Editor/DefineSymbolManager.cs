@@ -20,9 +20,9 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             var currentDefines = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
 
-            if (!currentDefines.Contains(defineSymbol))
+            if (!DefineSymbolUtility.Contains(currentDefines, defineSymbol))
             {
-                currentDefines = currentDefines + ";" + defineSymbol;
+                currentDefines = DefineSymbolUtility.Add(currentDefines, defineSymbol);
                 PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, currentDefines);
                 Debug.Log($"Added define symbol: {defineSymbol}");
             }
@@ -35,9 +35,9 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             var currentDefines = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
 
-            if (currentDefines.Contains(defineSymbol))
+            if (DefineSymbolUtility.Contains(currentDefines, defineSymbol))
             {
-                currentDefines = currentDefines.Replace(defineSymbol, "").Replace(";;", ";"); // Remove the symbol and clean up extra semicolons
+                currentDefines = DefineSymbolUtility.Remove(currentDefines, defineSymbol); // Whole-symbol removal; other symbols stay intact
                 PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, currentDefines);
                 Debug.Log($"Removed define symbol: {defineSymbol}");
             }
@@ -66,7 +66,7 @@ namespace SOSXR.EditorSpice.EditorScripts
             {
                 // Debug.LogFormat("Deleted asset: {0}", deletedAsset);
 
-                if (!deletedAsset.Contains("SOSXR_EditorSpice"))
+                if (!IsEditorSpiceAsset(deletedAsset))
                 {
                     continue;
                 }
@@ -78,6 +78,31 @@ namespace SOSXR.EditorSpice.EditorScripts
 
                 break;
             }
+        }
+
+
+        /// <summary>
+        ///     True when the deleted path is the EditorSpice package root folder or its package.json.
+        ///     Deleting a single file inside the package does not count.
+        /// </summary>
+        public static bool IsEditorSpiceAsset(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                return false;
+            }
+
+            var path = assetPath.Replace('\\', '/').TrimEnd('/');
+
+            if (path.EndsWith("/package.json", System.StringComparison.OrdinalIgnoreCase))
+            {
+                path = path.Substring(0, path.Length - "/package.json".Length);
+            }
+
+            var folder = path.Substring(path.LastIndexOf('/') + 1);
+
+            return folder.Equals("sosxr-unity-editorspice", System.StringComparison.OrdinalIgnoreCase)
+                   || folder.Equals("com.sosxr.editorspice", System.StringComparison.OrdinalIgnoreCase);
         }
     }
 }

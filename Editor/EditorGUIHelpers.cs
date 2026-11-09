@@ -452,7 +452,7 @@ namespace SOSXR.EditorSpice.EditorScripts
             );
         }
 
-        protected void OnDisable()
+        protected virtual void OnDisable()
         {
             if (InternalEditor == null)
             {

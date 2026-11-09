@@ -14,6 +14,14 @@ namespace SOSXR.EditorSpice.EditorScripts
 
         private static DragAndDropVisualMode OnScriptHierarchyDrop(EntityId dropTargetEntityId, HierarchyDropFlags dropMode, Transform parentForDraggedObjects, bool perform)
         {
+            var targetIsGameObject = EditorUtility.EntityIdToObject(dropTargetEntityId) is GameObject;
+
+            // Dropping onto a GameObject: let Unity's default handler add the component to it
+            if (!ShouldHandleDrop(targetIsGameObject, dropMode))
+            {
+                return DragAndDropVisualMode.None;
+            }
+
             var monoScript = GetScriptBeingDragged();
 
             if (monoScript != null)
@@ -29,6 +37,16 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             return DragAndDropVisualMode.None;
         }
+
+        /// <summary>
+        ///     True when this handler should create a new GameObject for the dropped script.
+        ///     False when the script is dropped onto an existing GameObject.
+        /// </summary>
+        public static bool ShouldHandleDrop(bool targetIsGameObject, HierarchyDropFlags dropMode)
+        {
+            return !(targetIsGameObject && (dropMode & HierarchyDropFlags.DropUpon) != 0);
+        }
+
 
         public static GameObject CreateAndRename(string startingName)
         {

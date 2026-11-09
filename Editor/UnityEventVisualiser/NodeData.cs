@@ -31,12 +31,15 @@ namespace EventVisualizer.Base
 
         public static void ClearAll()
         {
+            DetachAll();
             nodes.Clear();
         }
 
 
         public static void ClearSlots()
         {
+            DetachAll();
+
             foreach (var node in nodes.Keys)
             {
                 nodes[node].Outputs.Clear();
@@ -55,6 +58,21 @@ namespace EventVisualizer.Base
 
             nodeSender.Outputs.Add(eventCall);
             nodeReceiver.Inputs.Add(eventCall);
+
+            eventCall.Attach();
+        }
+
+
+        /// <summary>Removes every listener the visualiser added to UnityEvents.</summary>
+        private static void DetachAll()
+        {
+            foreach (var node in nodes.Values)
+            {
+                foreach (var call in node.Outputs)
+                {
+                    call.Detach();
+                }
+            }
         }
 
 

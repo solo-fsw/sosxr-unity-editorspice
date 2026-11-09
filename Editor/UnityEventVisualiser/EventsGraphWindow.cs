@@ -175,7 +175,7 @@ namespace EventVisualizer.Base
         {
             if (_graph != null)
             {
-                _graph.RebuildGraph(Selection.gameObjects, searchHierarchy);
+                _graph.RebuildGraph(roots, searchHierarchy);
             }
         }
 
@@ -191,10 +191,23 @@ namespace EventVisualizer.Base
         }
 
 
+        private void OnEnable()
+        {
+            RemoveCallbacks();
+            AddCallbacks();
+        }
+
+
         private void OnFocus()
         {
             RemoveCallbacks();
             AddCallbacks();
+        }
+
+
+        private void OnDisable()
+        {
+            RemoveCallbacks();
         }
 
 

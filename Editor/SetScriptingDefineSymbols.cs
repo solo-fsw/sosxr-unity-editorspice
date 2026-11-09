@@ -1,6 +1,6 @@
 using UnityEditor;
 using UnityEditor.Build;
-using UnityEngine;
+
 
 namespace SOSXR.EditorSpice.EditorScripts
 {
@@ -13,22 +13,21 @@ namespace SOSXR.EditorSpice.EditorScripts
                 EditorUserBuildSettings.activeBuildTarget
             );
             var currentBuildTarget = NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup);
+            var currentDefines = PlayerSettings.GetScriptingDefineSymbols(currentBuildTarget);
 
-            if (
-                PlayerSettings.GetScriptingDefineSymbols(currentBuildTarget).Contains(_defineSymbol)
-            )
+            if (DefineSymbolUtility.Contains(currentDefines, _defineSymbol))
             {
-                // Debug.Log($"Scripting define symbols already set for {_defineSymbol}.");
-
                 return;
             }
 
-            PlayerSettings.SetScriptingDefineSymbols(currentBuildTarget, _defineSymbol);
-
-            // Debug.Log($"Scripting define symbols set for {_defineSymbol}.");
+            // Append to the existing list. Never replace it: that would delete the project's other defines.
+            PlayerSettings.SetScriptingDefineSymbols(
+                currentBuildTarget,
+                DefineSymbolUtility.Add(currentDefines, _defineSymbol)
+            );
         }
+
 
         private const string _defineSymbol = "EDITORSPICE";
     }
 }
-

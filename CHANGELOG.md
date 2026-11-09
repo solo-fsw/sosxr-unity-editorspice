@@ -3,6 +3,37 @@
 All notable changes to this project will be documented in this file.
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.7.0] 09-11-2026
+
+### Added
+
+- EditMode tests in `Tests/Editor` (asmdef `SOSXR.EditorSpice.Tests`)
+- `DefineSymbolUtility` for whole-symbol define list handling
+
+### Changed
+
+- Samples moved back from `Samples~/` to visible `Samples/`
+- AutoSave starts after load, finds its config by type, and saves only dirty scenes that have a path
+- Essential Importer installs packages in one request
+- `DefineSymbolManager` removal triggers when the package root folder or its package.json is deleted
+- `HierarchyScriptDropHandler` leaves drops on GameObjects to Unity
+- `ReadmeShower` picks the README closest to the Assets root
+
+### Fixed
+
+- `SetScriptingDefineSymbols` appends `EDITORSPICE` instead of replacing the whole define list
+- Define symbol checks match whole symbols, not substrings
+- `AssetDependencyGraph` no longer recurses forever on cyclic references and no longer dereferences null nodes
+- UnityEvent visualiser works with GameObject and ScriptableObject senders and with four-argument events
+- UnityEvent listeners are no longer added on every rebuild and are removed on clear
+- `ProjectPresets` no longer skips later presets
+- `BuildInfoManager` saves its counters and first build advances the version
+- AutoSave no longer overwrites an existing config, no longer pops Save-As for untitled scenes, and skips playmode transitions
+- `VideoPlayerExtendedEditor` restores background colour and stops its update monitor
+- `HierarchyIconDisplay` sample no longer reopens a closed Hierarchy
+- Markdown editors dispose web requests and textures
+- `UNITY_MAC` replaced with `UNITY_EDITOR_OSX`
+
 ## [0.4.0] In Progress
 
 ### Added

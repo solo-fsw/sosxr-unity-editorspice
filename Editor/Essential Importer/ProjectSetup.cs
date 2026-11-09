@@ -40,7 +40,7 @@ namespace SOSXR.Setup
             Assets.ImportAsset("UMotion Pro - Animation Editor.unitypackage", "Soxware Interactive/Editor ExtensionsAnimation");
             Assets.ImportAsset("Better Transform - Size Notes Global-Local workspace child parent transform.unitypackage", "Tiny Giant Studio/Editor ExtensionsUtilities");
 
-            #if !UNITY_MAC
+            #if !UNITY_EDITOR_OSX
             Assets.ImportAsset("Bakery - GPU Lightmapper.unitypackage", "Mr F/Editor ExtensionsDesign");
             #endif
         }
@@ -165,47 +165,59 @@ namespace SOSXR.Setup
 
         private static class Packages
         {
-            private static AddRequest request;
-            private static readonly Queue<string> packagesToInstall = new();
+            private static AddAndRemoveRequest request;
 
 
+            /// <summary>
+            ///     Installs all packages in one Package Manager request. One resolve means one domain reload,
+            ///     so the install no longer stops after the first package or two.
+            /// </summary>
             public static void InstallPackages(string[] packages)
             {
-                foreach (var package in packages)
+                if (packages == null || packages.Length == 0)
                 {
-                    packagesToInstall.Enqueue(package);
+                    return;
                 }
 
-                if (packagesToInstall.Count > 0)
+                if (request != null && !request.IsCompleted)
                 {
-                    StartNextPackageInstallation();
+                    Debug.LogWarning("A package install is already running. Wait for it to finish.");
+
+                    return;
                 }
+
+                request = Client.AddAndRemove(packages);
+                EditorApplication.update -= Progress;
+                EditorApplication.update += Progress;
             }
 
 
-            private static async void StartNextPackageInstallation()
+            private static void Progress()
             {
-                request = Client.Add(packagesToInstall.Dequeue());
-
-                while (!request.IsCompleted)
+                if (request == null)
                 {
-                    await Task.Delay(10);
+                    EditorApplication.update -= Progress;
+
+                    return;
                 }
+
+                if (!request.IsCompleted)
+                {
+                    return;
+                }
+
+                EditorApplication.update -= Progress;
 
                 if (request.Status == StatusCode.Success)
                 {
-                    Debug.Log("Installed: " + request.Result.packageId);
+                    Debug.Log("Installed essential packages.");
                 }
                 else if (request.Status >= StatusCode.Failure)
                 {
-                    Debug.LogError(request.Error.message);
+                    Debug.LogError(request.Error?.message);
                 }
 
-                if (packagesToInstall.Count > 0)
-                {
-                    await Task.Delay(1000);
-                    StartNextPackageInstallation();
-                }
+                request = null;
             }
         }
 

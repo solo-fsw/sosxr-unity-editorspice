@@ -52,6 +52,14 @@ game.
 
 This tool depends on [EnhancedLogger](https://github.com/solo-fsw/sosxr-unity-enhancedlogger), which needs to be installed in your project.
 
+### Samples
+
+Samples live in the `Samples/` folder. Import them via Package Manager > EditorSpice > Samples. They are optional and can be removed without affecting the tools.
+
+## Tests
+
+The EditMode tests live in `Tests/Editor`. Run them via Window > General > Test Runner > EditMode.
+
 # Tools
 
 ## Attribution Helper
@@ -104,13 +112,19 @@ When clicking on an audio file in the editor, the Audio Preview allows you to cl
 
 Save your Unity scene every X seconds / minutes. Check the Project Settings to adjust the frequency of the auto save.
 
+- Only scenes that already have a path are saved. Untitled scenes are skipped, so no Save As popup appears.
+- The config is found by type. If none exists, one is created after load. An existing config is never overwritten.
+- Saving pauses while entering or in Play Mode.
+- The frequency is at least 1 minute.
+
 ## Build Helpers
 
 ### Build Info: Version Management
 
 This package increments the last digit ('patch') of the SemVer build number (found in Project Settings > Player > Version Number).
 This feature is useful for tracking builds and debugging. The build number will be incremented with each successful
-build and reset to 0 on the first build. It also updates the Android Bundle/Gradle version code, used in platforms like
+build, including the first one. If the version number has an unexpected format, it resets to the Initial SemVer set in the
+`BuildInfoDetails` asset. It also updates the Android Bundle/Gradle version code, used in platforms like
 ArborXR.
 
 You can use TextMeshPro alongside the `ShowBuildInfo` script to display the build number in the game. Combine this with
@@ -149,13 +163,17 @@ ScriptableWizard that batch-creates materials for selected textures using a spec
 
 ## DefineSymbolManager
 
-Adds `SOSXR_EDITORTOOLS_INSTALLED` to the project's scripting define symbols on load. Removes it automatically when the package is deleted.
+Adds `SOSXR_EDITORTOOLS_INSTALLED` to the project's scripting define symbols on load. Removes it automatically when the package is deleted. Symbols are appended, so other define symbols stay untouched.
+
+`SetScriptingDefineSymbols` adds `EDITORSPICE` the same way.
 
 ## EditorGUIHelpers
 
 Abstract base class for custom editor windows and inspectors. Derive from it to get pre-built field helpers (float, int, vector, color, etc.), boxed layouts, and a toggle between default and custom inspector views.
 
 ## Essential Importer
+
+Installs the Essential packages in one Package Manager request. A domain reload during the install does not stop it halfway.
 
 ## Extended Inspectors
 
@@ -169,7 +187,7 @@ Displays the most significant component icon next to GameObjects in the Hierarch
 
 ## HierarchyScriptDropHandler (by Warped Imagination)
 
-Allows dropping script assets directly onto GameObjects in the Hierarchy to add them as components.
+Allows dropping script assets onto empty space in the Hierarchy to create a GameObject with that script. Dropping a script onto an existing GameObject uses Unity's default behaviour and adds the component.
 
 ## Layout Switcher Tool (by Warped Imagination)
 
@@ -232,7 +250,7 @@ Creates a `README.md` from a template at the project root. Available via `Assets
 
 ### ReadmeShower
 
-Displays a README asset in a scrollable text area in the Inspector when attached to a GameObject.
+Displays a README asset in a scrollable text area in the Inspector when attached to a GameObject. It picks the `README.md` closest to the Assets root.
 
 ## SetIconWindow (based on Warped Imagination)
 

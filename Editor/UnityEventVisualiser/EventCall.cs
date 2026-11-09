@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -29,8 +30,9 @@ namespace EventVisualizer.Base
 
         public EventCall(Object sender, Object receiver, string eventShortName, string eventFullName, string methodName, UnityEventBase unityEvent)
         {
-            this.sender = (Component) sender ? ((Component) sender).gameObject : sender;
-            this.receiver = (Component) receiver ? ((Component) receiver).gameObject : receiver;
+            // Senders and receivers can be GameObjects or ScriptableObjects too. Only Components map to their GameObject.
+            this.sender = sender is Component senderComponent && senderComponent ? senderComponent.gameObject : sender;
+            this.receiver = receiver is Component receiverComponent && receiverComponent ? receiverComponent.gameObject : receiver;
             this.eventShortName = eventShortName;
             this.eventFullName = eventFullName;
             method = methodName;
@@ -38,7 +40,8 @@ namespace EventVisualizer.Base
             this.unityEvent = unityEvent;
 
             UpdateReceiverComponentName(receiver);
-            AttachTrigger(unityEvent);
+
+            // The listener is attached in NodeData.RegisterEvent, so duplicate calls that are discarded never leak a listener.
         }
 
 
@@ -50,105 +53,99 @@ namespace EventVisualizer.Base
         public string MethodFullPath => ReceiverComponentName + "." + method;
 
 
-        private void AttachTrigger(UnityEventBase unityEvent)
+        private static readonly string[] TriggerMethodNames =
         {
-            if (unityEvent == null)
+            nameof(TriggerZeroArgs),
+            nameof(TriggerOneArg),
+            nameof(TriggerTwoArgs),
+            nameof(TriggerThreeArgs),
+            nameof(TriggerFourArgs)
+        };
+
+        private static readonly Type[] UnityActionTypes =
+        {
+            typeof(UnityAction),
+            typeof(UnityAction<>),
+            typeof(UnityAction<,>),
+            typeof(UnityAction<,,>),
+            typeof(UnityAction<,,,>)
+        };
+
+        private Delegate _triggerAction;
+
+        /// <summary>True while this call has a listener registered on its UnityEvent.</summary>
+        public bool IsAttached => _triggerAction != null;
+
+
+        /// <summary>
+        ///     Adds a listener to the UnityEvent so the visualiser can show when it fires.
+        ///     Idempotent: calling it twice registers only one listener.
+        /// </summary>
+        public void Attach()
+        {
+            if (unityEvent == null || _triggerAction != null)
             {
                 return;
             }
 
             var eventRegisterMethod = unityEvent.GetType().GetMethod("AddListener");
 
-            if (eventRegisterMethod != null)
+            if (eventRegisterMethod == null)
             {
-                var eventType = eventRegisterMethod.GetParameters()[0].ParameterType;
-                var eventParameters = eventType.GetMethod("Invoke").GetParameters();
-
-                if (eventParameters.Length == 0)
-                {
-                    var methodInfo = GetType()
-                        .GetMethod("TriggerZeroArgs", BindingFlags.Public | BindingFlags.Instance);
-
-                    var actionT = typeof(UnityAction);
-                    var triggerAction = Delegate.CreateDelegate(actionT, this, methodInfo);
-
-                    eventRegisterMethod.Invoke(unityEvent, new object[]
-                    {
-                        triggerAction
-                    });
-                }
-
-                else if (eventParameters.Length == 1)
-                {
-                    var t0 = eventParameters[0].ParameterType;
-
-                    var methodInfo = GetType()
-                                     .GetMethod("TriggerOneArg", BindingFlags.Public | BindingFlags.Instance)
-                                     .MakeGenericMethod(t0);
-
-                    var actionT = typeof(UnityAction<>).MakeGenericType(t0);
-                    var triggerAction = Delegate.CreateDelegate(actionT, this, methodInfo);
-
-                    eventRegisterMethod.Invoke(unityEvent, new object[]
-                    {
-                        triggerAction
-                    });
-                }
-                else if (eventParameters.Length == 2)
-                {
-                    var t0 = eventParameters[0].ParameterType;
-                    var t1 = eventParameters[1].ParameterType;
-
-                    var methodInfo = GetType()
-                                     .GetMethod("TriggerTwoArgs", BindingFlags.Public | BindingFlags.Instance)
-                                     .MakeGenericMethod(t0, t1);
-
-                    var actionT = typeof(UnityAction<,>).MakeGenericType(t0, t1);
-                    var triggerAction = Delegate.CreateDelegate(actionT, this, methodInfo);
-
-                    eventRegisterMethod.Invoke(unityEvent, new object[]
-                    {
-                        triggerAction
-                    });
-                }
-                else if (eventParameters.Length == 3)
-                {
-                    var t0 = eventParameters[0].ParameterType;
-                    var t1 = eventParameters[1].ParameterType;
-                    var t2 = eventParameters[2].ParameterType;
-
-                    var methodInfo = GetType()
-                                     .GetMethod("TriggerThreeArgs", BindingFlags.Public | BindingFlags.Instance)
-                                     .MakeGenericMethod(t0, t1, t2);
-
-                    var actionT = typeof(UnityAction<,,>).MakeGenericType(t0, t1, t2);
-                    var triggerAction = Delegate.CreateDelegate(actionT, this, methodInfo);
-
-                    eventRegisterMethod.Invoke(unityEvent, new object[]
-                    {
-                        triggerAction
-                    });
-                }
-                else if (eventParameters.Length == 2)
-                {
-                    var t0 = eventParameters[0].ParameterType;
-                    var t1 = eventParameters[1].ParameterType;
-                    var t2 = eventParameters[2].ParameterType;
-                    var t3 = eventParameters[3].ParameterType;
-
-                    var methodInfo = GetType()
-                                     .GetMethod("TriggerFourArgs", BindingFlags.Public | BindingFlags.Instance)
-                                     .MakeGenericMethod(t0, t1, t2, t3);
-
-                    var actionT = typeof(UnityAction<,,,>).MakeGenericType(t0, t1, t2, t3);
-                    var triggerAction = Delegate.CreateDelegate(actionT, this, methodInfo);
-
-                    eventRegisterMethod.Invoke(unityEvent, new object[]
-                    {
-                        triggerAction
-                    });
-                }
+                return;
             }
+
+            var eventType = eventRegisterMethod.GetParameters()[0].ParameterType;
+            var eventParameters = eventType.GetMethod("Invoke").GetParameters();
+            var argCount = eventParameters.Length;
+
+            if (argCount >= TriggerMethodNames.Length)
+            {
+                return;
+            }
+
+            var argTypes = eventParameters.Select(p => p.ParameterType).ToArray();
+            var methodInfo = GetType().GetMethod(TriggerMethodNames[argCount], BindingFlags.Public | BindingFlags.Instance);
+            var actionT = UnityActionTypes[argCount];
+
+            if (argCount > 0)
+            {
+                methodInfo = methodInfo.MakeGenericMethod(argTypes);
+                actionT = actionT.MakeGenericType(argTypes);
+            }
+
+            var triggerAction = Delegate.CreateDelegate(actionT, this, methodInfo);
+
+            eventRegisterMethod.Invoke(unityEvent, new object[]
+            {
+                triggerAction
+            });
+
+            _triggerAction = triggerAction;
+        }
+
+
+        /// <summary>
+        ///     Removes the listener added by <see cref="Attach" /> and clears <see cref="OnTriggered" />.
+        ///     Call before discarding the EventCall, otherwise the UnityEvent keeps it alive.
+        /// </summary>
+        public void Detach()
+        {
+            OnTriggered = null;
+
+            if (_triggerAction == null)
+            {
+                return;
+            }
+
+            var eventRemoveMethod = unityEvent?.GetType().GetMethod("RemoveListener");
+
+            eventRemoveMethod?.Invoke(unityEvent, new object[]
+            {
+                _triggerAction
+            });
+
+            _triggerAction = null;
         }
 
 

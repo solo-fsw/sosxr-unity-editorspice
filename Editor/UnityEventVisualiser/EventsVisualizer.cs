@@ -146,7 +146,7 @@ namespace EventVisualizer.Base
         }
 
 
-        [DidReloadScripts]
+        // InitializeOnLoadMethod runs after every domain reload. [DidReloadScripts] as well made the scan run twice.
         [InitializeOnLoadMethod]
         private static void RefreshTypesThatCanHoldUnityEvents()
         {

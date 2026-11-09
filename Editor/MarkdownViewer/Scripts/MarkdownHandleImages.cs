@@ -120,8 +120,62 @@ namespace MG.MDV
             }
 
             mActiveRequests.Remove(req);
+            req.Request.Dispose();
 
             return true;
+        }
+
+
+        //------------------------------------------------------------------------------
+
+
+        /// <summary>
+        ///     Aborts and disposes pending requests and destroys every texture this handler created.
+        ///     The shared placeholder texture belongs to the skin and is not destroyed.
+        /// </summary>
+        public void Dispose()
+        {
+            foreach (var req in mActiveRequests)
+            {
+                req.Request.Abort();
+                req.Request.Dispose();
+            }
+
+            mActiveRequests.Clear();
+
+            var destroyed = new HashSet<Texture>();
+
+            foreach (var anim in mAnimatedTextures)
+            {
+                foreach (var tex in anim.Textures)
+                {
+                    DestroyTexture(tex, destroyed);
+                }
+            }
+
+            mAnimatedTextures.Clear();
+
+            foreach (var tex in mTextureCache.Values)
+            {
+                DestroyTexture(tex, destroyed);
+            }
+
+            mTextureCache.Clear();
+        }
+
+
+        private void DestroyTexture(Texture tex, HashSet<Texture> destroyed)
+        {
+            if (tex == null || tex == mPlaceholder || !destroyed.Add(tex))
+            {
+                return;
+            }
+
+            // Only destroy textures created at runtime, never assets
+            if (!EditorUtility.IsPersistent(tex))
+            {
+                UnityEngine.Object.DestroyImmediate(tex);
+            }
         }
 
 

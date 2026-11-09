@@ -112,7 +112,8 @@ namespace EventVisualizer.Base
                     }
 
                     var edge = graph.Connect(outSlot, inSlot);
-                    call.OnTriggered += () => EdgeTriggersTracker.RegisterTrigger(edge, call);
+                    // Assign, don't add: PopulateEdges runs on every rebuild
+                    call.OnTriggered = () => EdgeTriggersTracker.RegisterTrigger(edge, call);
                 }
             }
         }

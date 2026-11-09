@@ -45,7 +45,25 @@ namespace SOSXR.BuildHelpers
 
             _buildInfoDetails.LastBuildResult = BuildResult.Unknown; // Reset the result before the build starts
 
+            SaveBuildInfoDetails();
+
             WritePreBuildInfoToFile();
+        }
+
+
+        /// <summary>
+        ///     Marks the ScriptableObject dirty and writes it to disk.
+        ///     Without this the counters and LastBuildResult are lost when the editor closes.
+        /// </summary>
+        private static void SaveBuildInfoDetails()
+        {
+            if (_buildInfoDetails == null)
+            {
+                return;
+            }
+
+            EditorUtility.SetDirty(_buildInfoDetails);
+            AssetDatabase.SaveAssetIfDirty(_buildInfoDetails);
         }
 
         private static void GetBuildInfoDetailsFile()
@@ -60,7 +78,13 @@ namespace SOSXR.BuildHelpers
             if (path == null)
             {
                 _buildInfoDetails = ScriptableObject.CreateInstance<BuildInfoDetails>();
+
+                // No previous build exists, so there is no failed increment to undo
+                _buildInfoDetails.LastBuildResult = BuildResult.Succeeded;
+
                 var assetPath = "Assets/_SOSXR/Resources/BuildInfoDetails.asset";
+                EnsureDirectoryExists(Path.GetDirectoryName(assetPath));
+                AssetDatabase.Refresh();
                 AssetDatabase.CreateAsset(_buildInfoDetails, assetPath);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
@@ -133,7 +157,15 @@ namespace SOSXR.BuildHelpers
         /// </summary>
         public static void WritePostBuildInfoToFile()
         {
+            // A domain reload during the build clears the static reference
+            GetBuildInfoDetailsFile();
+
             var buildReport = BuildReport.GetLatestReport();
+
+            if (buildReport == null)
+            {
+                return;
+            }
 
             double fileSizeMB = -1;
             var fileInfo = new FileInfo(buildReport.summary.outputPath);
@@ -164,12 +196,14 @@ namespace SOSXR.BuildHelpers
             sw.Write(string.Join(", ", buildInfo));
 
             _buildInfoDetails.LastBuildResult = buildReport.summary.result;
+
+            SaveBuildInfoDetails();
         }
 
         private static string GetAssetPath()
         {
             var paths = AssetDatabase
-                .FindAssets(nameof(BuildInfoDetails))
+                .FindAssets($"t:{nameof(BuildInfoDetails)}")
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .Where(c => c.EndsWith(".asset"))
                 .ToList();
@@ -206,19 +240,40 @@ namespace SOSXR.BuildHelpers
         /// </summary>
         private static string GenerateNextVersion(string version, bool increment)
         {
-            var buildIndicator = EditorUserBuildSettings.development
-                ? _buildInfoDetails.DevelopmentBuildIndicator
-                : _buildInfoDetails.ProductionBuildIndicator;
-            version = version.TrimEnd(
-                Convert.ToChar(_buildInfoDetails.DevelopmentBuildIndicator),
-                Convert.ToChar(_buildInfoDetails.ProductionBuildIndicator)
+            return GenerateNextVersion(
+                version,
+                increment,
+                EditorUserBuildSettings.development,
+                _buildInfoDetails.DevelopmentBuildIndicator,
+                _buildInfoDetails.ProductionBuildIndicator,
+                _buildInfoDetails.InitialSemVer
+            );
+        }
+
+
+        /// <summary>
+        ///     Pure version of the patch increment. Separated so it can be unit tested.
+        /// </summary>
+        public static string GenerateNextVersion(
+            string version,
+            bool increment,
+            bool development,
+            string developmentIndicator,
+            string productionIndicator,
+            string initialSemVer
+        )
+        {
+            var buildIndicator = development ? developmentIndicator : productionIndicator;
+            version = (version ?? string.Empty).TrimEnd(
+                Convert.ToChar(developmentIndicator),
+                Convert.ToChar(productionIndicator)
             ); // Remove build indicator if present
 
             var parts = version.Split('_');
 
             if (parts.Length < 2 || !int.TryParse(parts[^1], out var currentNumber))
             {
-                var initialVersion = $"{_buildInfoDetails.InitialSemVer}{buildIndicator}";
+                var initialVersion = $"{initialSemVer}{buildIndicator}";
 
                 Debug.LogWarning(
                     $"[SemanticVersion] Invalid version format \"{version}\". "

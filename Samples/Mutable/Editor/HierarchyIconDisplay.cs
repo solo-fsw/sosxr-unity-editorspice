@@ -29,20 +29,18 @@ namespace SOSXR.EditorSpice.EditorScripts
         private static readonly bool IncludeScripts = true;
         private static readonly bool KeepIconsForPrefabs = false;
 
+        private const string HierarchyWindowTypeName = "UnityEditor.SceneHierarchyWindow";
+
         private static bool _hierarchyHasFocus;
-        private static EditorWindow _hierarchyEditorWindow;
 
         /// <summary>
-        ///     Runs every time the editor updates
+        ///     Runs every time the editor updates.
+        ///     Only reads the focused window. Never calls GetWindow here: that reopens and focuses a closed Hierarchy.
         /// </summary>
         private static void OnEditorUpdate()
         {
-            if (_hierarchyEditorWindow == null)
-            {
-                _hierarchyEditorWindow = EditorWindow.GetWindow(Type.GetType("UnityEditor.SceneHierarchyWindow,UnityEditor"));
-            }
-
-            _hierarchyHasFocus = EditorWindow.focusedWindow != null && EditorWindow.focusedWindow == _hierarchyEditorWindow;
+            var focused = EditorWindow.focusedWindow;
+            _hierarchyHasFocus = focused != null && focused.GetType().FullName == HierarchyWindowTypeName;
         }
 
         private static void OnHierarchyWindowItemOnGUI(UnityEngine.EntityId instanceID, Rect selectionRect)

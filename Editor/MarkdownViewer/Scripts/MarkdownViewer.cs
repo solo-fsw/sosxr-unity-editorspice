@@ -65,6 +65,15 @@ namespace MG.MDV
         }
 
 
+        /// <summary>
+        ///     Releases pending web requests and the textures downloaded for this document.
+        /// </summary>
+        public void Dispose()
+        {
+            mHandlerImages.Dispose();
+        }
+
+
         //------------------------------------------------------------------------------
 
 

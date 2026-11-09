@@ -25,13 +25,14 @@ namespace MG.MDV
 
         protected void OnEnable()
         {
-            var content = (target as TextAsset).text;
             var path = AssetDatabase.GetAssetPath(target);
 
             var ext = Path.GetExtension(path).ToLower();
 
             if (mExtensions.Contains(ext))
             {
+                // Read .text only for markdown files. Other TextAssets can be large (json, csv, bytes).
+                var content = (target as TextAsset).text;
                 mViewer = new MarkdownViewer(Preferences.DarkSkin ? SkinDark : SkinLight, path, content);
                 EditorApplication.update += UpdateRequests;
             }
@@ -43,7 +44,14 @@ namespace MG.MDV
             if (mViewer != null)
             {
                 EditorApplication.update -= UpdateRequests;
+                mViewer.Dispose();
                 mViewer = null;
+            }
+
+            if (mDefaultEditor != null)
+            {
+                DestroyImmediate(mDefaultEditor);
+                mDefaultEditor = null;
             }
         }
 

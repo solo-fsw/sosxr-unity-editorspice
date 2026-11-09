@@ -26,6 +26,7 @@ namespace MG.MDV
         protected void OnDisable()
         {
             EditorApplication.update -= UpdateRequests;
+            mViewer?.Dispose();
             mViewer = null;
         }
 

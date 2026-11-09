@@ -229,6 +229,12 @@ namespace SOSXR.AssetDependencyGraph
 
             // Create the main node at depth 0
             var mainNode = CreateNode(mainObject, assetPath, true, hasDependencies);
+
+            if (mainNode == null)
+            {
+                return;
+            }
+
             mainNode.userData = 0;
 
             // Position main node at origin
@@ -240,7 +246,9 @@ namespace SOSXR.AssetDependencyGraph
             groupNode.AddElement(mainNode);
 
             // Recursively create nodes for all dependencies
-            CreateDependencyNodes(dependencies, mainNode, groupNode, 1);
+            // The visited set stops cyclic references from recursing forever
+            var visited = new HashSet<string> {assetPath};
+            CreateDependencyNodes(dependencies, mainNode, groupNode, 1, visited);
 
             // Track elements for cleanup
             m_AssetElements.Add(mainNode);
@@ -272,17 +280,35 @@ namespace SOSXR.AssetDependencyGraph
         /// <param name="parentNode">The node that depends on these assets</param>
         /// <param name="groupNode">The group to add new nodes to</param>
         /// <param name="depth">Current depth in the dependency tree (0 = main asset)</param>
-        private void CreateDependencyNodes(string[] dependencies, Node parentNode, Group groupNode, int depth)
+        /// <param name="visited">Asset paths already expanded. Prevents infinite recursion on cyclic references.</param>
+        private void CreateDependencyNodes(string[] dependencies, Node parentNode, Group groupNode, int depth, HashSet<string> visited)
         {
+            if (parentNode == null || parentNode.outputContainer.childCount == 0)
+            {
+                return;
+            }
+
             foreach (var dependencyString in dependencies)
             {
                 // Load the dependency asset and its sub-dependencies
                 var dependencyAsset = AssetDatabase.LoadMainAssetAtPath(dependencyString);
+
+                if (dependencyAsset == null)
+                {
+                    continue;
+                }
+
                 var deeperDependencies = AssetDatabase.GetDependencies(dependencyString, false);
 
                 // Create or retrieve the node for this dependency
                 var dependencyNode = CreateNode(dependencyAsset, AssetDatabase.GetAssetPath(dependencyAsset),
                     false, deeperDependencies.Length > 0);
+
+                // CreateNode returns null for objects that are not persistent assets
+                if (dependencyNode == null)
+                {
+                    continue;
+                }
 
                 // Set depth if this is a new node
                 if (!m_AssetElements.Contains(dependencyNode))
@@ -290,8 +316,17 @@ namespace SOSXR.AssetDependencyGraph
                     dependencyNode.userData = depth;
                 }
 
-                // Recursively process deeper dependencies
-                CreateDependencyNodes(deeperDependencies, dependencyNode, groupNode, depth + 1);
+                // Recursively process deeper dependencies, once per asset
+                if (visited.Add(dependencyString))
+                {
+                    CreateDependencyNodes(deeperDependencies, dependencyNode, groupNode, depth + 1, visited);
+                }
+
+                // A cycle back to the main asset has no input port to connect to
+                if (dependencyNode.inputContainer.childCount == 0)
+                {
+                    continue;
+                }
 
                 // Add node to graph view if not already present
                 if (!m_GraphView.Contains(dependencyNode))
@@ -354,7 +389,13 @@ namespace SOSXR.AssetDependencyGraph
         /// <returns>A Node representing the asset in the graph</returns>
         private Node CreateNode(Object obj, string assetPath, bool isMainNode, bool hasDependencies)
         {
-            Node resultNode;
+            Node resultNode = null;
+
+            if (obj == null || string.IsNullOrEmpty(assetPath))
+            {
+                return null;
+            }
+
             var assetGUID = AssetDatabase.AssetPathToGUID(assetPath);
 
             // Check if we've already created a node for this asset (deduplication)
@@ -500,8 +541,11 @@ namespace SOSXR.AssetDependencyGraph
                 resultNode.capabilities |= Capabilities.Collapsible;  // Allow collapsing node contents
             }
 
-            // Cache the node by GUID for deduplication
-            m_GUIDNodeLookup[assetGUID] = resultNode;
+            // Cache the node by GUID for deduplication. Never cache null.
+            if (resultNode != null)
+            {
+                m_GUIDNodeLookup[assetGUID] = resultNode;
+            }
 
             return resultNode;
         }
@@ -536,6 +580,7 @@ namespace SOSXR.AssetDependencyGraph
 
             m_AssetElements.Clear();
             m_GUIDNodeLookup.Clear();
+            m_DependenciesForPlacement.Clear();
         }
 
 
