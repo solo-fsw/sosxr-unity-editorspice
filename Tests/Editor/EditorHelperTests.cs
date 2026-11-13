@@ -201,6 +201,17 @@ namespace SOSXR.EditorSpice.Tests
             Assert.IsTrue(HierarchyScriptDropHandler.ShouldHandleDrop(false, HierarchyDropFlags.None));
             Assert.IsTrue(HierarchyScriptDropHandler.ShouldHandleDrop(false, HierarchyDropFlags.DropUpon));
         }
+
+
+        [Test]
+        public void FindFrameAndRenameHook_ExistsInThisUnityVersion()
+        {
+            // Regression: rename after drop used GetWindow(SceneHierarchyWindow), which opened a legacy Hierarchy
+            // in Unity 6.6. The fix relies on this internal hook; fails here first if Unity renames it.
+            var hook = HierarchyScriptDropHandler.FindFrameAndRenameHook();
+            Assert.IsNotNull(hook);
+            Assert.AreEqual(0, hook.GetParameters().Length);
+        }
     }
 
 

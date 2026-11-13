@@ -14,6 +14,7 @@ namespace SOSXR.EditorSpice.EditorScripts
     /// 
     /// Integration: Demonstrates an Editor extension pattern alongside ToggleUsingHierarchyIcon.
     /// Related Classes: ToggleUsingHierarchyIcon, HierarchyIconDisplay.
+    /// Legacy Hierarchy window only (IMGUI callback). The new Hierarchy window (default from Unity 6.6) has a built-in Active column.
     /// </summary>
     [InitializeOnLoad]
     public static class HierarchyToggleButton

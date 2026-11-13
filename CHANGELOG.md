@@ -5,14 +5,39 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 ## [Unreleased]
 
+### Added
+
+- `AudioEditor` window: trim, fade, preview, and save an AudioClip as `<name>_edited.wav`. Menu: `SOSXR/Audio Editor`, `Assets/SOSXR/Edit Audio Clip`.
+- `AudioClipProcessor` static helpers for trim, fade, waveform peaks, marker interval, and time formatting.
+- `WavUtility.FromSamples` to encode float samples as 16-bit PCM .wav data. Samples outside -1 to 1 are clipped.
+- `VideoEditor` window: set a trim range on a `VideoClip`, preview it in Play Mode and record it to `<clip>_Trimmed.mp4`. Menu: `SOSXR/Video Editor`, `Assets/SOSXR/Edit Video Clip`.
+- `VideoTrimPlayer` plays a trimmed range into a RenderTexture via a temporary, unsaved GameObject.
+- `VideoTrimRecorder` records the trimmed range with the Unity Recorder (`com.unity.recorder` 5.0.0 or newer, gated by `EDITORSPICE_RECORDER`).
+- `VideoTrimMath` helpers for trim clamping, frame index, even render sizes, and output paths.
+- EditMode tests: `AudioClipProcessorTests`, `WavUtilityTests`, `AudioEditorTests`, `VideoTrimMathTests`, `VideoEditorTests`.
+
 ### Changed
 
+- `package.json` minimum Unity is now `6000.4` (was `6000.0`). The package already used `EntityId` APIs without version guards: `AssetCreationEndAction` and `EditorApplication.hierarchyWindowItemByEntityIdOnGUI` first appear in 6000.4.
+- README: Hierarchy tool sections say which Hierarchy window they work in.
 - `BuildInfoManager` sets each build's SemVer and Android bundle version code to the last successful build plus one. Failed, cancelled and unfinished builds no longer consume or undo version numbers.
 - `BuildInfoDetails` stores `LastSuccessfulSemVer` and `LastSuccessfulBundleVersionCode`. Existing projects seed them once from PlayerSettings.
+- `AudioEditor` moved from `WIP/AudioEditor.cs` to `Editor/AudioEditor/`. Assembly: `SOSXR.EditorSpice.EditorScripts`.
+- `VideoEditor` changed from a WIP MonoBehaviour (`WIP/VideoEditor.cs` + `VideoEditorEditor.cs`) to an EditorWindow in `Editor/VideoEditor/`. Assembly: `SOSXR.EditorSpice.EditorScripts`.
+- Sample scene `Demo_Scene_VideoEditor` no longer contains the `VideoEditor` component.
+
+### Fixed
+
+- `HierarchyScriptDropHandler` opened a legacy Hierarchy window when the new Hierarchy window (default in Unity 6.6) was in use, and the new GameObject was not renamed. It now uses Unity's internal "frame and rename new GameObject" hook, which both Hierarchy windows handle. Fallback: send `Rename` to an already open Hierarchy window; never opens one.
+- Sample `ToggleUsingHierarchyIcon` did nothing in the new Hierarchy window. From Unity 6.5 it also hooks `HierarchyWindow.BindViewItem` and toggles when the pointer goes down on the item icon. The legacy Hierarchy path is unchanged.
+- Sample `ToggleUsingHierarchyIcon` had a pre-6000.3 branch that could not compile (handler takes `EntityId`). Removed.
+- `WavUtility` wrote the header over the first 44 bytes of sample data. The header now comes before the samples.
+- `WavUtility` wrote an incorrect RIFF chunk size. The size now covers all data after the size field.
 
 ### Removed
 
 - `BuildInfoManager.ChangeSemVer` and `BuildInfoManager.ChangeAndroidVersion` (replaced by `GetNextVersion` and `RecordSuccessfulBuild`)
+- `WIP/` folder, including `WIP/AudioEditor.cs`, `WIP/VideoEditor.cs`, and `WIP/VideoEditorEditor.cs`.
 
 ## [0.7.0] 09-11-2026
 

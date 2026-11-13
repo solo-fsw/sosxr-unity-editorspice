@@ -5,71 +5,104 @@ using UnityEngine;
 
 
 /// <summary>
+///     Writes 16-bit PCM .wav data.
 ///     From Simblend: https://github.com/SimblendGames/Simblend-Editor
 /// </summary>
 public static class WavUtility
 {
+    /// <summary>
+    ///     Size of the RIFF/WAVE header written in front of the sample data, in bytes.
+    /// </summary>
+    public const int HeaderSize = 44;
+
+    private const int BytesPerSample = sizeof(short);
+
+
+    /// <summary>
+    ///     Encodes all sample data of the clip as a 16-bit PCM .wav file.
+    ///     The clip must not be a streaming clip, because GetData does not work on those.
+    /// </summary>
     public static byte[] FromAudioClip(AudioClip clip)
     {
-        var stream = new MemoryStream();
-        var length = 0;
-
-        var data = ConvertAndWrite(stream, clip, out length);
-        stream.Seek(0, SeekOrigin.Begin);
-
-        var header = WriteHeader(stream, clip, length);
-        stream.Seek(0, SeekOrigin.Begin);
-
-        return stream.ToArray();
-    }
-
-
-    private static byte[] ConvertAndWrite(MemoryStream stream, AudioClip clip, out int length)
-    {
-        var samples = clip.samples * clip.channels;
-        var data = new float[samples];
-        clip.GetData(data, 0);
-
-        var intData = new short[data.Length];
-        var bytesData = new byte[data.Length * sizeof(short)];
-
-        const int rescaleFactor = 32767; // to convert float to Int16
-
-        for (var i = 0; i < data.Length; i++)
+        if (clip == null)
         {
-            intData[i] = (short) (data[i] * rescaleFactor);
-            BitConverter.GetBytes(intData[i]).CopyTo(bytesData, i * sizeof(short));
+            throw new ArgumentNullException(nameof(clip));
         }
 
-        stream.Write(bytesData, 0, bytesData.Length);
+        var data = new float[clip.samples * clip.channels];
+        clip.GetData(data, 0);
 
-        length = bytesData.Length;
-
-        return bytesData;
+        return FromSamples(data, clip.channels, clip.frequency);
     }
 
 
-    private static byte[] WriteHeader(MemoryStream stream, AudioClip clip, int length)
+    /// <summary>
+    ///     Encodes interleaved float samples (-1 to 1) as a 16-bit PCM .wav file. Values outside -1 to 1 are clipped.
+    /// </summary>
+    public static byte[] FromSamples(float[] samples, int channels, int frequency)
     {
-        var hz = clip.frequency;
-        var channels = clip.channels;
+        if (samples == null)
+        {
+            throw new ArgumentNullException(nameof(samples));
+        }
 
-        stream.Seek(0, SeekOrigin.Begin);
+        if (channels <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(channels), "Channel count must be positive.");
+        }
 
-        stream.Write(Encoding.UTF8.GetBytes("RIFF"), 0, 4);
-        stream.Write(BitConverter.GetBytes(stream.Length - 8), 0, 4);
-        stream.Write(Encoding.UTF8.GetBytes("WAVE"), 0, 4);
-        stream.Write(Encoding.UTF8.GetBytes("fmt "), 0, 4);
-        stream.Write(BitConverter.GetBytes(16), 0, 4);
-        stream.Write(BitConverter.GetBytes((short) 1), 0, 2);
-        stream.Write(BitConverter.GetBytes((short) channels), 0, 2);
-        stream.Write(BitConverter.GetBytes(hz), 0, 4);
-        stream.Write(BitConverter.GetBytes(hz * channels * 2), 0, 4);
-        stream.Write(BitConverter.GetBytes((short) (channels * 2)), 0, 2);
-        stream.Write(BitConverter.GetBytes((short) 16), 0, 2);
-        stream.Write(Encoding.UTF8.GetBytes("data"), 0, 4);
-        stream.Write(BitConverter.GetBytes(length), 0, 4);
+        if (frequency <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(frequency), "Frequency must be positive.");
+        }
 
-        return stream.ToArray();
+        var dataLength = samples.Length * BytesPerSample;
+        var bytes = new byte[HeaderSize + dataLength];
+
+        using (var stream = new MemoryStream(bytes))
+        using (var writer = new BinaryWriter(stream))
+        {
+            WriteHeader(writer, channels, frequency, dataLength);
+
+            foreach (var sample in samples)
+            {
+                writer.Write(ToInt16(sample));
+            }
+        }
+
+        return bytes;
+    }
+
+
+    private static void WriteHeader(BinaryWriter writer, int channels, int frequency, int dataLength)
+    {
+        writer.Write(Encoding.ASCII.GetBytes("RIFF"));
+        writer.Write(HeaderSize - 8 + dataLength); // RIFF chunk size: everything after this field
+        writer.Write(Encoding.ASCII.GetBytes("WAVE"));
+        writer.Write(Encoding.ASCII.GetBytes("fmt "));
+        writer.Write(16); // fmt chunk size for PCM
+        writer.Write((short) 1); // Audio format: PCM
+        writer.Write((short) channels);
+        writer.Write(frequency);
+        writer.Write(frequency * channels * BytesPerSample); // Byte rate
+        writer.Write((short) (channels * BytesPerSample)); // Block align
+        writer.Write((short) (BytesPerSample * 8)); // Bits per sample
+        writer.Write(Encoding.ASCII.GetBytes("data"));
+        writer.Write(dataLength);
+    }
+
+
+    private static short ToInt16(float sample)
+    {
+        const int rescaleFactor = 32767; // to convert float to Int16
+
+        if (float.IsNaN(sample))
+        {
+            return 0;
+        }
+
+        var clipped = sample < -1f ? -1f : sample > 1f ? 1f : sample;
+
+        return (short) Math.Round(clipped * rescaleFactor);
     }
 }

@@ -5,7 +5,8 @@
         "GUID:190979c3ed6e41c448f5e9925429edf9",
         "GUID:fe685ec1767f73d42b749ea8045bfe43",
         "GUID:478a2357cc57436488a56e564b08d223",
-        "GUID:3d2c2e10f47a24e279eb7163f3b379e7"
+        "GUID:3d2c2e10f47a24e279eb7163f3b379e7",
+        "Unity.Recorder.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -16,6 +17,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.recorder",
+            "expression": "5.0.0",
+            "define": "EDITORSPICE_RECORDER"
+        }
+    ],
     "noEngineReferences": false
 }

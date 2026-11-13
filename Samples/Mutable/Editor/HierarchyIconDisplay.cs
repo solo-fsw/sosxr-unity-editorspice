@@ -15,6 +15,8 @@ namespace SOSXR.EditorSpice.EditorScripts
     /// by selecting the most relevant component type.
     ///
     /// Integration: Editor-only utility. Drop into an Editor folder; enabled at editor load.
+    /// Legacy Hierarchy window only: the new Hierarchy window (default from Unity 6.6) never calls the IMGUI callback.
+    /// The new Hierarchy already shows the first component icon after the Transform (Preferences > General > GameObject Icons).
     /// Related Classes: ToggleUsingHierarchyIcon, HierarchyToggleButton, AudioSourceExtendedEditor.
     /// </summary>
     [InitializeOnLoad] // This will call the constructor of the class when Unity starts

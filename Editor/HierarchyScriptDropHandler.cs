@@ -67,13 +67,70 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             Undo.RegisterCreatedObjectUndo(gameObject, "Created GameObject");
 
-            EditorApplication.delayCall += static () =>
-            {
-                Type sceneHierarchyType = Type.GetType("UnityEditor.SceneHierarchyWindow,UnityEditor");
-                _ = EditorWindow.GetWindow(sceneHierarchyType).SendEvent(EditorGUIUtility.CommandEvent("Rename"));
-            };
+            EditorApplication.delayCall += static () => FrameAndRenameInHierarchy();
 
             return gameObject;
+        }
+
+        /// <summary>
+        ///     Frames the selected GameObject in the Hierarchy and starts renaming it.
+        ///     Works with both the legacy SceneHierarchyWindow and the new (Unity 6.3+) HierarchyWindow.
+        ///     Uses Unity's own internal "frame and rename new GameObject" hook, the same one that
+        ///     GameObject > Create Empty uses. Both Hierarchy implementations subscribe to it.
+        ///     Never calls EditorWindow.GetWindow: that would open a legacy Hierarchy when the new one is in use.
+        /// </summary>
+        private static void FrameAndRenameInHierarchy()
+        {
+            var frameAndRename = FindFrameAndRenameHook();
+
+            if (frameAndRename != null)
+            {
+                _ = frameAndRename.Invoke(null, null);
+
+                return;
+            }
+
+            // Fallback if Unity renames the internal hook: send a Rename command to an already open Hierarchy.
+            var hierarchy = FindOpenHierarchyWindow();
+
+            if (hierarchy == null)
+            {
+                return;
+            }
+
+            hierarchy.Focus();
+            _ = hierarchy.SendEvent(EditorGUIUtility.CommandEvent("Rename"));
+        }
+
+        /// <summary>
+        ///     Unity's internal hook behind GameObject > Create Empty's frame-and-rename. Null if Unity renamed or removed it.
+        /// </summary>
+        public static System.Reflection.MethodInfo FindFrameAndRenameHook()
+        {
+            return typeof(EditorApplication).GetMethod("Internal_FrameAndRenameNewGameObject",
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        }
+
+
+        private static EditorWindow FindOpenHierarchyWindow()
+        {
+            var newHierarchies = Resources.FindObjectsOfTypeAll<Unity.Hierarchy.Editor.HierarchyWindow>();
+
+            if (newHierarchies.Length > 0)
+            {
+                return newHierarchies[0];
+            }
+
+            var legacyType = Type.GetType("UnityEditor.SceneHierarchyWindow,UnityEditor");
+
+            if (legacyType == null)
+            {
+                return null;
+            }
+
+            var legacyHierarchies = Resources.FindObjectsOfTypeAll(legacyType);
+
+            return legacyHierarchies.Length > 0 ? legacyHierarchies[0] as EditorWindow : null;
         }
 
         private static MonoScript GetScriptBeingDragged()
