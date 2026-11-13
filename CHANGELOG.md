@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [Unreleased]
+
+### Changed
+
+- `BuildInfoManager` sets each build's SemVer and Android bundle version code to the last successful build plus one. Failed, cancelled and unfinished builds no longer consume or undo version numbers.
+- `BuildInfoDetails` stores `LastSuccessfulSemVer` and `LastSuccessfulBundleVersionCode`. Existing projects seed them once from PlayerSettings.
+
+### Removed
+
+- `BuildInfoManager.ChangeSemVer` and `BuildInfoManager.ChangeAndroidVersion` (replaced by `GetNextVersion` and `RecordSuccessfulBuild`)
+
 ## [0.7.0] 09-11-2026
 
 ### Added

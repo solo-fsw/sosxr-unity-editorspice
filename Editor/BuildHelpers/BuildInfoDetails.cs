@@ -37,6 +37,12 @@ namespace SOSXR.BuildHelpers
         [Tooltip("Android only")]
         [DisableEditing] public int AndroidBundleVersionCode;
 
+        [Header("Last Successful Build")]
+        [Tooltip("SemVer of the last successful build. The next build gets this version plus one.")]
+        [DisableEditing] public string LastSuccessfulSemVer;
+        [Tooltip("Android bundle version code of the last successful build. The next build gets this code plus one.")]
+        [DisableEditing] public int LastSuccessfulBundleVersionCode;
+
         [Header("Previous Builds")]
         [DisableEditing] public int TotalAttemptedBuilds;
         [DisableEditing] public int TotalSuccessBuilds;

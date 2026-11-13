@@ -13,7 +13,8 @@ namespace SOSXR.BuildHelpers
 {
     /// <summary>
     ///     Handles automatic semantic versioning and build information updates.
-    ///     Only increments version numbers on successful builds.
+    ///     Each build gets the version of the last successful build plus one.
+    ///     Failed, cancelled or unfinished builds therefore do not consume version numbers.
     /// </summary>
     public class BuildInfoManager : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
@@ -39,9 +40,13 @@ namespace SOSXR.BuildHelpers
 
             _buildInfoDetails.TotalAttemptedBuilds++;
 
-            UndoPreviousIncrementIfPreviousBuildFailed();
+            SeedLastSuccessfulVersion(
+                _buildInfoDetails,
+                PlayerSettings.bundleVersion,
+                PlayerSettings.Android.bundleVersionCode
+            );
 
-            IncrementVersionNumbers();
+            ApplyNextVersion();
 
             _buildInfoDetails.LastBuildResult = BuildResult.Unknown; // Reset the result before the build starts
 
@@ -99,34 +104,115 @@ namespace SOSXR.BuildHelpers
         }
 
         /// <summary>
-        ///     If the previous build failed, we need to undo the incrementation that was done before the build started.
-        ///     This ensures that the version numbers only increment on successful builds.
-        ///     We check if the previous build succeeded by storing the latest BuildResult. Since we do this upon completion of the build process, we can use that to determine if the previous build was successful or not.
-        ///     Because the OnPostprocessBuild is not called on __all__ failed builds, and not called on Cancelled builds at all, if the value is anything other than Succeeded, we assume the build failed.
+        ///     Projects that used the old undo/increment logic have no last successful version stored yet.
+        ///     Derive it once from the current PlayerSettings values.
+        ///     If the previous build did not succeed, the current values belong to that build, so the last success is one lower.
         /// </summary>
-        private static void UndoPreviousIncrementIfPreviousBuildFailed()
+        public static void SeedLastSuccessfulVersion(
+            BuildInfoDetails details,
+            string currentSemVer,
+            int currentBundleVersionCode
+        )
         {
-            if (_buildInfoDetails.LastBuildResult == BuildResult.Succeeded)
+            if (!string.IsNullOrEmpty(details.LastSuccessfulSemVer))
             {
                 return;
             }
 
-            ChangeSemVer(false);
+            var previousBuildSucceeded = details.LastBuildResult == BuildResult.Succeeded;
 
-            if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android)
-            {
-                ChangeAndroidVersion(false);
-            }
+            details.LastSuccessfulSemVer = previousBuildSucceeded
+                ? currentSemVer
+                : GenerateNextVersion(
+                    currentSemVer,
+                    false,
+                    IsDevelopmentVersion(currentSemVer, details),
+                    details.DevelopmentBuildIndicator,
+                    details.ProductionBuildIndicator,
+                    details.InitialSemVer
+                );
+
+            details.LastSuccessfulBundleVersionCode = previousBuildSucceeded
+                ? currentBundleVersionCode
+                : Math.Max(0, currentBundleVersionCode - 1);
         }
 
-        private static void IncrementVersionNumbers()
-        {
-            ChangeSemVer(true);
 
-            if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android)
+        /// <summary>
+        ///     The version for the upcoming build: one higher than the last successful build.
+        /// </summary>
+        public static (string semVer, int bundleVersionCode) GetNextVersion(
+            BuildInfoDetails details,
+            bool development
+        )
+        {
+            var semVer = GenerateNextVersion(
+                details.LastSuccessfulSemVer,
+                true,
+                development,
+                details.DevelopmentBuildIndicator,
+                details.ProductionBuildIndicator,
+                details.InitialSemVer
+            );
+
+            var bundleVersionCode = Math.Max(0, details.LastSuccessfulBundleVersionCode) + 1;
+
+            return (semVer, bundleVersionCode);
+        }
+
+
+        /// <summary>
+        ///     Stores the version of the build that just succeeded, so the next build continues from it.
+        /// </summary>
+        public static void RecordSuccessfulBuild(BuildInfoDetails details)
+        {
+            details.LastSuccessfulSemVer = details.SemVer;
+            details.LastSuccessfulBundleVersionCode = details.AndroidBundleVersionCode;
+        }
+
+
+        private static bool IsDevelopmentVersion(string semVer, BuildInfoDetails details)
+        {
+            return !string.IsNullOrEmpty(semVer)
+                && !string.IsNullOrEmpty(details.DevelopmentBuildIndicator)
+                && semVer.EndsWith(details.DevelopmentBuildIndicator);
+        }
+
+
+        /// <summary>
+        ///     Writes the next version to the BuildInfoDetails and PlayerSettings.
+        /// </summary>
+        private static void ApplyNextVersion()
+        {
+            var (semVer, bundleVersionCode) = GetNextVersion(
+                _buildInfoDetails,
+                EditorUserBuildSettings.development
+            );
+
+            _buildInfoDetails.OldSemVer = PlayerSettings.bundleVersion;
+            _buildInfoDetails.SemVer = semVer;
+            PlayerSettings.bundleVersion = semVer;
+
+            Debug.LogFormat(
+                "SemanticVersion: Updated SemVer from {0} to {1}",
+                _buildInfoDetails.OldSemVer,
+                _buildInfoDetails.SemVer
+            );
+
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
             {
-                ChangeAndroidVersion(true);
+                return;
             }
+
+            _buildInfoDetails.OldBundleVersionCode = PlayerSettings.Android.bundleVersionCode;
+            _buildInfoDetails.AndroidBundleVersionCode = bundleVersionCode;
+            PlayerSettings.Android.bundleVersionCode = bundleVersionCode;
+
+            Debug.LogFormat(
+                "SemanticVersion: Updated Android Bundle Version Code from {0} to {1}",
+                _buildInfoDetails.OldBundleVersionCode,
+                _buildInfoDetails.AndroidBundleVersionCode
+            );
         }
 
         private static IEnumerator PostProcessBuildCR()
@@ -178,6 +264,7 @@ namespace SOSXR.BuildHelpers
             if (buildReport.summary.result == BuildResult.Succeeded)
             {
                 _buildInfoDetails.TotalSuccessBuilds++;
+                RecordSuccessfulBuild(_buildInfoDetails);
             }
 
             var buildInfo = new[]
@@ -219,39 +306,6 @@ namespace SOSXR.BuildHelpers
         }
 
         /// <summary>
-        /// Adjusts the semantic version string. If increment is true, increments the patch number; otherwise decrements.
-        /// </summary>
-        public static void ChangeSemVer(bool increment)
-        {
-            _buildInfoDetails.OldSemVer = PlayerSettings.bundleVersion;
-            _buildInfoDetails.SemVer = GenerateNextVersion(_buildInfoDetails.OldSemVer, increment);
-
-            PlayerSettings.bundleVersion = _buildInfoDetails.SemVer;
-            Debug.LogFormat(
-                "SemanticVersion: Updated SemVer from {0} to {1}",
-                _buildInfoDetails.OldSemVer,
-                _buildInfoDetails.SemVer
-            );
-        }
-
-        /// <summary>
-        /// Increments or decrements the patch segment of an underscore-separated semver string (e.g. `1_0_0`).
-        /// Appends a build-type indicator suffix. Returns the initial semver from BuildInfoDetails if the format is invalid.
-        /// </summary>
-        private static string GenerateNextVersion(string version, bool increment)
-        {
-            return GenerateNextVersion(
-                version,
-                increment,
-                EditorUserBuildSettings.development,
-                _buildInfoDetails.DevelopmentBuildIndicator,
-                _buildInfoDetails.ProductionBuildIndicator,
-                _buildInfoDetails.InitialSemVer
-            );
-        }
-
-
-        /// <summary>
         ///     Pure version of the patch increment. Separated so it can be unit tested.
         /// </summary>
         public static string GenerateNextVersion(
@@ -286,24 +340,6 @@ namespace SOSXR.BuildHelpers
             parts[^1] = (increment ? currentNumber + 1 : Math.Max(0, currentNumber - 1)).ToString();
 
             return $"{string.Join("_", parts)}{buildIndicator}";
-        }
-
-        /// <summary>
-        /// Adjusts the Android bundle version code. Increments or decrements based on the flag.
-        /// </summary>
-        public static void ChangeAndroidVersion(bool increment)
-        {
-            _buildInfoDetails.OldBundleVersionCode = PlayerSettings.Android.bundleVersionCode;
-            _buildInfoDetails.AndroidBundleVersionCode = increment
-                ? _buildInfoDetails.OldBundleVersionCode + 1
-                : Math.Max(0, _buildInfoDetails.OldBundleVersionCode - 1);
-
-            PlayerSettings.Android.bundleVersionCode = _buildInfoDetails.AndroidBundleVersionCode;
-            Debug.LogFormat(
-                "SemanticVersion: Updated Android Bundle Version Code from {0} to {1}",
-                _buildInfoDetails.OldBundleVersionCode,
-                _buildInfoDetails.AndroidBundleVersionCode
-            );
         }
 
         public static void WritePreBuildInfoToFile()

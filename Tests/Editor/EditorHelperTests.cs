@@ -4,6 +4,7 @@ using SOSXR.BuildHelpers;
 using SOSXR.EditorSpice.EditorScripts;
 using Tarodev;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -29,6 +30,131 @@ namespace SOSXR.EditorSpice.Tests
             LogAssert.Expect(LogType.Warning, new Regex("Invalid version format"));
 
             Assert.AreEqual("0_0_1p", BuildInfoManager.GenerateNextVersion("garbage", true, false, "d", "p", "0_0_1"));
+        }
+    }
+
+
+    public class BuildVersionSequenceTests
+    {
+        private BuildInfoDetails _details;
+
+
+        [SetUp]
+        public void SetUp()
+        {
+            _details = ScriptableObject.CreateInstance<BuildInfoDetails>();
+        }
+
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(_details);
+        }
+
+
+        [Test]
+        public void SeedLastSuccessfulVersion_PreviousBuildSucceeded_UsesCurrentVersion()
+        {
+            _details.LastBuildResult = BuildResult.Succeeded;
+
+            BuildInfoManager.SeedLastSuccessfulVersion(_details, "0_0_64d", 64);
+
+            Assert.AreEqual("0_0_64d", _details.LastSuccessfulSemVer);
+            Assert.AreEqual(64, _details.LastSuccessfulBundleVersionCode);
+        }
+
+
+        [TestCase(BuildResult.Unknown)]
+        [TestCase(BuildResult.Failed)]
+        [TestCase(BuildResult.Cancelled)]
+        public void SeedLastSuccessfulVersion_PreviousBuildNotSucceeded_UsesOneBelowCurrentVersion(BuildResult lastResult)
+        {
+            // The current version was set for a build that did not succeed
+            _details.LastBuildResult = lastResult;
+
+            BuildInfoManager.SeedLastSuccessfulVersion(_details, "0_0_64d", 64);
+
+            Assert.AreEqual("0_0_63d", _details.LastSuccessfulSemVer);
+            Assert.AreEqual(63, _details.LastSuccessfulBundleVersionCode);
+        }
+
+
+        [Test]
+        public void SeedLastSuccessfulVersion_AlreadyKnown_DoesNotOverwrite()
+        {
+            _details.LastSuccessfulSemVer = "0_0_10d";
+            _details.LastSuccessfulBundleVersionCode = 10;
+            _details.LastBuildResult = BuildResult.Failed;
+
+            BuildInfoManager.SeedLastSuccessfulVersion(_details, "0_0_64d", 64);
+
+            Assert.AreEqual("0_0_10d", _details.LastSuccessfulSemVer);
+            Assert.AreEqual(10, _details.LastSuccessfulBundleVersionCode);
+        }
+
+
+        [Test]
+        public void GetNextVersion_IsOneAboveLastSuccessfulBuild()
+        {
+            _details.LastSuccessfulSemVer = "0_0_64d";
+            _details.LastSuccessfulBundleVersionCode = 64;
+
+            var (semVer, bundleVersionCode) = BuildInfoManager.GetNextVersion(_details, true);
+
+            Assert.AreEqual("0_0_65d", semVer);
+            Assert.AreEqual(65, bundleVersionCode);
+        }
+
+
+        [Test]
+        public void GetNextVersion_SwitchToProduction_KeepsNumberChangesIndicator()
+        {
+            _details.LastSuccessfulSemVer = "0_0_64d";
+            _details.LastSuccessfulBundleVersionCode = 64;
+
+            var (semVer, _) = BuildInfoManager.GetNextVersion(_details, false);
+
+            Assert.AreEqual("0_0_65p", semVer);
+        }
+
+
+        [Test]
+        public void Sequence_FailedAndUnfinishedBuilds_DoNotConsumeVersionNumbers()
+        {
+            _details.LastSuccessfulSemVer = "0_0_5d";
+            _details.LastSuccessfulBundleVersionCode = 5;
+
+            // Success
+            ApplyNextVersion();
+            Assert.AreEqual("0_0_6d", _details.SemVer);
+            Assert.AreEqual(6, _details.AndroidBundleVersionCode);
+            BuildInfoManager.RecordSuccessfulBuild(_details);
+
+            // Failed build: nothing recorded
+            ApplyNextVersion();
+            Assert.AreEqual("0_0_7d", _details.SemVer);
+
+            // Build that never reached post-processing: nothing recorded
+            ApplyNextVersion();
+            Assert.AreEqual("0_0_7d", _details.SemVer);
+
+            // Success reuses the number the failed builds tried
+            ApplyNextVersion();
+            Assert.AreEqual("0_0_7d", _details.SemVer);
+            Assert.AreEqual(7, _details.AndroidBundleVersionCode);
+            BuildInfoManager.RecordSuccessfulBuild(_details);
+
+            // Next success is one higher than the last success
+            ApplyNextVersion();
+            Assert.AreEqual("0_0_8d", _details.SemVer);
+            Assert.AreEqual(8, _details.AndroidBundleVersionCode);
+        }
+
+
+        private void ApplyNextVersion()
+        {
+            (_details.SemVer, _details.AndroidBundleVersionCode) = BuildInfoManager.GetNextVersion(_details, true);
         }
     }
 
