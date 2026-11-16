@@ -15,6 +15,8 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - `VideoTrimRecorder` records the trimmed range with the Unity Recorder (`com.unity.recorder` 5.0.0 or newer, gated by `EDITORSPICE_RECORDER`).
 - `VideoTrimMath` helpers for trim clamping, frame index, even render sizes, and output paths.
 - EditMode tests: `AudioClipProcessorTests`, `WavUtilityTests`, `AudioEditorTests`, `VideoTrimMathTests`, `VideoEditorTests`.
+- `BatchPackageUpdater` window: check the project's Git (and optionally registry) packages for updates, select several, and update them in one Package Manager request. Menu: `SOSXR/Batch Package Updater`.
+- `PackageUpdateMath` helpers for package ids, Git URLs, `git ls-remote` output and SemVer comparison. EditMode tests: `PackageUpdateMathTests`.
 
 ### Changed
 

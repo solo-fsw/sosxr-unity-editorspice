@@ -156,6 +156,31 @@ Save your Unity scene every X seconds / minutes. Check the Project Settings to a
 - Saving pauses while entering or in Play Mode.
 - The frequency is at least 1 minute.
 
+## Batch Package Updater
+
+Unity's Package Manager window updates one package at a time. This window updates several packages in one request: one resolve and one domain reload.
+
+### How to Use
+
+1. Select **SOSXR > Batch Package Updater** from the menu bar.
+2. Wait for the update check. Each Git package shows **Up to date**, an update (`installed → remote` commit), **Pinned to a commit**, or an error.
+3. Press **Select: Updates** to select every package with an update. Or tick packages by hand.
+4. Press **Update selected (N)**.
+
+Turn on **Registry packages** in the toolbar to also list registry packages (for example `com.unity.*`). The search field filters by name or display name.
+
+### Notes
+
+- Only direct dependencies from `Packages/manifest.json` are listed. Embedded, local and built-in packages are skipped.
+- The check runs `git ls-remote` for each Git package. Git must be on the PATH, as for any UPM Git dependency. Credential prompts are turned off, so a private repository without stored credentials shows an error instead of hanging.
+- A Git package is updated by adding its manifest URL again. UPM then fetches the newest commit of the branch or tag in the URL.
+- Packages pinned to a commit hash (`#<hash>`) can't be selected: they never change.
+
+### Related Classes
+
+- `BatchPackageUpdater`: the EditorWindow.
+- `PackageUpdateMath`: parsing and version comparison, without Unity types.
+
 ## Build Helpers
 
 ### Build Info: Version Management
