@@ -10,6 +10,10 @@ using Object = UnityEngine.Object;
 
 namespace SOSXR.WhatUsesThis
 {
+    /// <summary>
+    /// Reverse-dependency lookup for project assets. Maps each asset to the assets that use it, and caches the map in Temp/WhatUsesThis.json.
+    /// Backs the What uses this? menu command, which rebuilds the cache on demand.
+    /// </summary>
     public static class WhatUsesThis
     {
         private static Dictionary<string, List<string>> Dict => _dict ?? Load() ?? CleanBuild();
@@ -38,7 +42,10 @@ namespace SOSXR.WhatUsesThis
 
                     if (i % 100 == 0 && EditorUtility.DisplayCancelableProgressBar("WhatUsesThis", $"Getting Dependencies [{i}/{allAssets.Length}]", i / (float) allAssets.Length))
                     {
-                        return new Dictionary<string, List<string>>();
+                        // Null, not an empty dictionary, so callers can tell a cancel from "nothing uses this"
+                        Debug.Log("WhatUsesThis: rebuild cancelled.");
+
+                        return null;
                     }
                 }
 
@@ -90,6 +97,25 @@ namespace SOSXR.WhatUsesThis
         }
 
 
+        /// <summary>Drops the in-memory and on-disk cache so the next query rebuilds it.</summary>
+        internal static void Invalidate()
+        {
+            _dict = null;
+
+            try
+            {
+                if (File.Exists(CacheFilename))
+                {
+                    File.Delete(CacheFilename);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"WhatUsesThis: could not delete cache file {CacheFilename}: {e.Message}");
+            }
+        }
+
+
         private static Dictionary<string, List<string>> Load()
         {
             try
@@ -111,6 +137,14 @@ namespace SOSXR.WhatUsesThis
         private static void FindParentAssets()
         {
             var iCount = 0;
+            var dict = Dict;
+
+            if (dict == null)
+            {
+                Debug.Log("<color=#5C93B9>What uses this? Search aborted: dependency cache was not built.</color>");
+
+                return;
+            }
 
             foreach (var selectedObj in Selection.GetFiltered(typeof(Object), SelectionMode.Assets))
             {
@@ -118,7 +152,7 @@ namespace SOSXR.WhatUsesThis
 
                 Debug.Log($"<color=#5C93B9>What uses <b>{selected}</b>?</color>", selectedObj);
 
-                if (Dict.TryGetValue(selected, out var dependants))
+                if (dict.TryGetValue(selected, out var dependants))
                 {
                     foreach (var d in dependants)
                     {
@@ -151,6 +185,24 @@ namespace SOSXR.WhatUsesThis
             }
 
             Debug.Log($"<color=#5C93B9>Search complete, found <b>{iCount}</b> result{(iCount == 1 ? "" : "s")}</color>");
+        }
+    }
+
+
+    /// <summary>
+    /// Invalidates the WhatUsesThis reverse-dependency cache whenever assets are imported, deleted or moved,
+    /// so queries never answer from a stale dependency map.
+    /// </summary>
+    internal class WhatUsesThisCacheInvalidator : AssetPostprocessor
+    {
+        private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        {
+            if (importedAssets.Length == 0 && deletedAssets.Length == 0 && movedAssets.Length == 0)
+            {
+                return;
+            }
+
+            WhatUsesThis.Invalidate();
         }
     }
 }

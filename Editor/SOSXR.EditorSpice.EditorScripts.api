@@ -56,8 +56,10 @@ namespace EventVisualizer.Base
 
     public static class EdgeTriggersTracker
     {
+        public const int MaxTriggers = 1000;
         public static readonly float TimeToLive = 1f;
         public static void CleanObsolete();
+        public static void Clear();
         public static System.Collections.Generic.List<float> GetTimings(EventCall eventCall);
         public static System.Collections.Generic.List<float> GetTimings(UnityEditor.Graphs.Edge edge);
         public static bool HasData();

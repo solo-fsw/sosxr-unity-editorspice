@@ -8,11 +8,16 @@ using UnityEngine;
 
 namespace EventVisualizer.Base
 {
+    /// <summary>
+    /// Editor window that shows an EventsGraph of UnityEvent calls. Its toolbar rebuilds or refreshes the graph, and its toggles control the scene view overlay.
+    /// </summary>
     public class EventsGraphWindow : EditorWindow
     {
         [SerializeField] private EventsGraph _graph;
         [SerializeField] private EventsGraphGUI _graphGUI;
+        /// <summary>Vertical spacing, in pixels, between the labels drawn on a node's connections.</summary>
         public float separation = 3;
+        /// <summary>GUI skin applied to the scene view overlay labels.</summary>
         public GUISkin guiSkin;
 
         private static readonly string[] toolbarStrings = {"Rebuild on selected Hierarchy", "Rebuild JUST selected", "Update connections"};
@@ -27,10 +32,15 @@ namespace EventVisualizer.Base
 
         private bool initialized;
 
+        /// <summary>Whether connections are drawn only for selected GameObjects. Stored in EditorPrefs.</summary>
         public SavedPrefBool showOnlyWhenSelected = new("EventVisualizer_showOnlyWhenSelected", true);
+        /// <summary>Whether connection labels are drawn. Stored in EditorPrefs.</summary>
         public SavedPrefBool showLabels = new("EventVisualizer_showLabels", true);
+        /// <summary>Whether labels show the receiver component name before the method. Stored in EditorPrefs.</summary>
         public SavedPrefBool showComponentName = new("EventVisualizer_showComponentName", true);
+        /// <summary>Whether labels show how many times the event has fired. Stored in EditorPrefs.</summary>
         public SavedPrefBool showTimesExecuted = new("EventVisualizer_showTimesExecuted", true);
+        /// <summary>Whether labels show the full event name instead of the short name. Stored in EditorPrefs.</summary>
         public SavedPrefBool eventFullName = new("EventVisualizer_eventFullName", true);
 
         private const float kZoomMin = 0.1f;
@@ -48,6 +58,7 @@ namespace EventVisualizer.Base
         }
 
 
+        /// <summary>Creates the graph and its GUI on the first call. Later calls do nothing.</summary>
         public void Initialize()
         {
             if (initialized)
@@ -128,6 +139,9 @@ namespace EventVisualizer.Base
 
         private void Update()
         {
+            // Triggers are otherwise only pruned for edges that get drawn
+            EdgeTriggersTracker.CleanObsolete();
+
             if (EdgeTriggersTracker.HasData())
             {
                 Repaint();
@@ -135,12 +149,17 @@ namespace EventVisualizer.Base
         }
 
 
+        /// <summary>Requests that the node with the given id is selected and centered on the next GUI pass.</summary>
+        /// <param name="overrideIndex">The entity id of the node to select.</param>
         public void OverrideSelection(int overrideIndex)
         {
             _graphGUI.SelectionOverride = overrideIndex;
         }
 
 
+        /// <summary>Converts a point in window coordinates to graph coordinates, using the current zoom and origin.</summary>
+        /// <param name="screenCoords">A point in window (screen) coordinates.</param>
+        /// <returns>The same point in graph coordinates.</returns>
         public Vector2 ConvertScreenCoordsToZoomCoords(Vector2 screenCoords)
         {
             return (screenCoords - _zoomArea.TopLeft()) / _zoom + _zoomCoordsOrigin;
@@ -165,12 +184,17 @@ namespace EventVisualizer.Base
         }
 
 
+        /// <summary>Rebuilds the graph from the GameObjects currently selected in the Editor.</summary>
+        /// <param name="searchHierarchy">True to include the child objects of the selection, false to use only the selection.</param>
         public void RebuildGraphOnSelected(bool searchHierarchy)
         {
             RebuildGraph(Selection.gameObjects, searchHierarchy);
         }
 
 
+        /// <summary>Rebuilds the graph for the given roots, if the graph exists.</summary>
+        /// <param name="roots">The root GameObjects to search. Null or empty means the whole scene.</param>
+        /// <param name="searchHierarchy">True to include the child objects of the roots, false to search only the roots.</param>
         public void RebuildGraph(GameObject[] roots, bool searchHierarchy)
         {
             if (_graph != null)
@@ -180,6 +204,7 @@ namespace EventVisualizer.Base
         }
 
 
+        /// <summary>Logs a message, then refreshes the connections of the existing graph. Nodes that still exist keep their positions.</summary>
         public void RefreshGraphConnections()
         {
             Debug.Log("Refreshing UnityEventVisualizer Graph Connections");
@@ -214,6 +239,10 @@ namespace EventVisualizer.Base
         private void OnDestroy()
         {
             RemoveCallbacks();
+
+            // Detach the visualiser's listeners from scene UnityEvents; otherwise they stay attached after the window closes
+            NodeData.ClearAll();
+            EdgeTriggersTracker.Clear();
         }
 
 
@@ -593,15 +622,22 @@ namespace EventVisualizer.Base
         }
 
 
+        /// <summary>A bool stored in EditorPrefs under a fixed key. The value is read from EditorPrefs on the first call to Get.</summary>
         [Serializable]
         public class SavedPrefBool
         {
+            /// <summary>The EditorPrefs key the value is stored under.</summary>
             public readonly string name;
+            /// <summary>The value returned when nothing is stored yet.</summary>
             protected readonly bool defaultValue;
+            /// <summary>The cached value, loaded from EditorPrefs on first access.</summary>
             protected bool value;
             private bool ready;
 
 
+            /// <summary>Creates a saved bool with the given EditorPrefs key and default value.</summary>
+            /// <param name="name">The EditorPrefs key.</param>
+            /// <param name="defaultValue">The value returned when nothing is stored yet.</param>
             public SavedPrefBool(string name, bool defaultValue)
             {
                 this.name = name;
@@ -609,6 +645,8 @@ namespace EventVisualizer.Base
             }
 
 
+            /// <summary>Returns the stored value. On the first call, reads it from EditorPrefs, falling back to the default.</summary>
+            /// <returns>The current value.</returns>
             public bool Get()
             {
                 if (!ready)
@@ -621,8 +659,16 @@ namespace EventVisualizer.Base
             }
 
 
+            /// <summary>Caches the value and writes it to EditorPrefs. Does nothing if the value is unchanged.</summary>
+            /// <param name="value">The new value.</param>
             public void Set(bool value)
             {
+                // Called every OnGUI event; only write EditorPrefs when the value actually changes
+                if (Get() == value)
+                {
+                    return;
+                }
+
                 this.value = value;
                 EditorPrefs.SetBool(name, value);
             }

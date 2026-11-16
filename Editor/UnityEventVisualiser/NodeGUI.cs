@@ -6,11 +6,17 @@ using UnityEngine;
 
 namespace EventVisualizer.Base
 {
+    /// <summary>
+    /// Graph node that displays one NodeData entry from the event visualizer. Its slots are built from the event calls it sends and receives.
+    /// </summary>
     public class NodeGUI : Node
     {
         #region Public class methods
 
         // Factory method
+        /// <summary>Creates a NodeGUI bound to the given runtime data. Its icon matches the entity type, GameObject or ScriptableObject.</summary>
+        /// <param name="dataInstance">The runtime data to display.</param>
+        /// <returns>The new node.</returns>
         public static NodeGUI Create(NodeData dataInstance)
         {
             var isGameObject = dataInstance.Entity is GameObject;
@@ -29,15 +35,22 @@ namespace EventVisualizer.Base
 
         private Texture2D icon;
 
+        /// <summary>True while the node is bound to runtime data. A node without it is shown as Missing.</summary>
         public bool isValid => _runtimeInstance != null;
+
+        /// <summary>The scene object this node represents (null when missing).</summary>
+        public Object Entity => _runtimeInstance?.Entity;
 
         #endregion
 
         #region Overridden virtual methods
 
+        /// <summary>The name of the node's entity, or Missing when the node is not bound to data.</summary>
         public override string title => isValid ? _runtimeInstance.Name : "<Missing>";
 
 
+        /// <summary>Draws the base node UI, then the node icon in the top-left corner.</summary>
+        /// <param name="host">The graph GUI that hosts the node.</param>
         public override void NodeUI(GraphGUI host)
         {
             base.NodeUI(host);
@@ -94,6 +107,10 @@ namespace EventVisualizer.Base
         }
 
 
+        /// <summary>
+        /// Creates a graph edge for each output call to its receiver, replacing any existing edge between the same slots.
+        /// Also sets each call's OnTriggered callback to record an edge trigger.
+        /// </summary>
         public void PopulateEdges()
         {
             foreach (var outSlot in outputSlots)

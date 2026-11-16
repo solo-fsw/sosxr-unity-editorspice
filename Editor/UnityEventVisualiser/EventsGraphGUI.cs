@@ -3,15 +3,21 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Graphs;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 
 namespace EventVisualizer.Base
 {
+    /// <summary>
+    /// Draws an EventsGraph in the editor window. Handles node windows, edge rendering and syncing the graph selection to the Editor Selection.
+    /// </summary>
     [Serializable]
     public class EventsGraphGUI : GraphGUI
     {
+        /// <summary>When non-zero, the id of the node to select and center on during the next GUI pass. Reset to 0 once applied.</summary>
         [SerializeField] public int SelectionOverride;
 
+        /// <summary>The edge renderer for this graph. Created on first access.</summary>
         public override IEdgeGUI edgeGUI
         {
             get
@@ -26,6 +32,7 @@ namespace EventVisualizer.Base
         }
 
 
+        /// <summary>Draws the node windows, then the edges, and handles mouse drag selection.</summary>
         public override void OnGraphGUI()
         {
             // Show node subwindows.
@@ -70,6 +77,8 @@ namespace EventVisualizer.Base
         }
 
 
+        /// <summary>Draws a node's input slots, body and output slots, then handles dragging and selection for it.</summary>
+        /// <param name="node">The node to draw.</param>
         public override void NodeGUI(Node node)
         {
             SelectNode(node);
@@ -99,26 +108,28 @@ namespace EventVisualizer.Base
         {
             OverrideSelection();
 
-            if (selection.Count > 0)
+            if (selection.Count == 0)
             {
-                var selectedIds = new int[selection.Count];
+                _lastPushedSelection = Array.Empty<Object>();
 
-                for (var i = 0; i < selection.Count; i++)
-                {
-                    if (selection[i] != null)
-                    {
-                var entityId = int.Parse(selection[i].name);
-                    selectedIds[i] = entityId;
-                }
+                return;
             }
 
-#if UNITY_6000_3_OR_NEWER
-                Selection.entityIds = selectedIds.Select(id => default(EntityId)).ToArray();
-#else
-                Selection.instanceIDs = selectedIds;
-#endif
+            var entities = selection.OfType<NodeGUI>().Select(node => node.Entity).Where(entity => entity != null).ToArray();
+
+            // Only push when the graph selection changed, so a selection made elsewhere (Hierarchy) is not
+            // overwritten on every GUI event, and Selection is not rewritten constantly.
+            if (entities.SequenceEqual(_lastPushedSelection))
+            {
+                return;
             }
+
+            _lastPushedSelection = entities;
+            Selection.objects = entities;
         }
+
+
+        private Object[] _lastPushedSelection = Array.Empty<Object>();
 
 
         private void OverrideSelection()

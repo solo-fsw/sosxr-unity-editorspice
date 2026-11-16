@@ -9,6 +9,10 @@ using UnityEngine;
 
 namespace SOSXR.EditorSpice.EditorScripts
 {
+    /// <summary>
+    /// Applies SOSXR preset assets to the project's PlayerSettings and QualitySettings, and registers default presets per asset type.
+    /// Presets are found by name under Assets/_SOSXR and Packages.
+    /// </summary>
     public static class ProjectPresets
     {
         private static string[] _foldersToSearch
@@ -16,10 +20,12 @@ namespace SOSXR.EditorSpice.EditorScripts
             get { return new[] {"Assets/_SOSXR", "Packages"}; }
         }
 
-        private static bool _initialPresetsApplied // Set it as a EditorPrefs so it persists between sessions
+        private const string InitialPresetsAppliedKey = "SOSXR.InitialPresetsApplied";
+
+        private static bool _initialPresetsApplied // Stored in EditorUserSettings (UserSettings/), so it persists between sessions but is scoped to this project
         {
-            get => EditorPrefs.GetBool("InitialPresetsApplied", false);
-            set => EditorPrefs.SetBool("InitialPresetsApplied", value);
+            get => EditorUserSettings.GetConfigValue(InitialPresetsAppliedKey) == "true";
+            set => EditorUserSettings.SetConfigValue(InitialPresetsAppliedKey, value ? "true" : "false");
         }
 
         private static readonly string _defaultFilter = "t:preset SOSXR ";
@@ -45,6 +51,9 @@ namespace SOSXR.EditorSpice.EditorScripts
                     }
                 }
 
+                // Static list: drop paths collected by an earlier run so presets are not imported twice
+                _paths.Clear();
+
                 await SetPlayerSettingsPreset();
                 await SetQualitySettingsPreset();
 
@@ -64,10 +73,26 @@ namespace SOSXR.EditorSpice.EditorScripts
         }
 
 
+        /// <summary>
+        ///     PlayerSettings properties that identify a specific project. These are never taken from the preset,
+        ///     so applying it to an existing project keeps its bundle IDs, versions, name and GUID.
+        /// </summary>
+        private static readonly string[] _playerSettingsIdentityPrefixes =
+        {
+            "productGUID", "clonedFromGUID", "productName", "companyName", "bundleVersion",
+            "applicationIdentifier", "buildNumber", "AndroidBundleVersionCode", "metroPackageName",
+            "metroPackageVersion", "XboxOneProductId", "XboxOneVersion", "XboxOneAllowedProductIds"
+        };
+
+
+        private static bool IsIdentityProperty(string propertyPath)
+        {
+            return _playerSettingsIdentityPrefixes.Any(prefix => propertyPath == prefix || propertyPath.StartsWith(prefix + ".", StringComparison.Ordinal));
+        }
+
+
         private static async Task SetPlayerSettingsPreset()
         {
-            var productName = PlayerSettings.productName;
-
             var targets = Resources.FindObjectsOfTypeAll<PlayerSettings>();
 
             var filter = "PlayerSettings";
@@ -92,7 +117,13 @@ namespace SOSXR.EditorSpice.EditorScripts
                     continue;
                 }
 
-                if (preset.ApplyTo(target))
+                var nonIdentityPaths = preset.PropertyModifications
+                                             .Select(modification => modification.propertyPath)
+                                             .Where(propertyPath => !IsIdentityProperty(propertyPath))
+                                             .Distinct()
+                                             .ToArray();
+
+                if (preset.ApplyTo(target, nonIdentityPaths))
                 {
                     _paths.Add(path);
                 }
@@ -101,8 +132,6 @@ namespace SOSXR.EditorSpice.EditorScripts
                     Debug.LogError($"Failed to apply preset to {filter}");
                 }
             }
-
-            PlayerSettings.productName = productName; // Put back the original product name
 
             await Task.CompletedTask;
         }

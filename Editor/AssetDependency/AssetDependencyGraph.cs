@@ -219,6 +219,10 @@ namespace SOSXR.AssetDependencyGraph
                 return;
             }
 
+            // Each explore builds its own nodes. Reusing nodes from an earlier explore would
+            // pull them out of their group and skip their layout.
+            m_GUIDNodeLookup.Clear();
+
             // Create a group node to organize all related nodes
             var groupNode = new Group {title = obj.name};
             var mainObject = AssetDatabase.LoadMainAssetAtPath(assetPath);
@@ -372,7 +376,7 @@ namespace SOSXR.AssetDependencyGraph
         /// Creates a new graph node for an asset, or returns an existing one if already created.
         /// 
         /// Deduplication: If the same asset appears multiple times in the dependency tree,
-        /// this method returns the existing node and increments its depth counter.
+        /// this method returns the existing node unchanged (its depth in userData is kept).
         /// This prevents duplicate nodes and reduces memory usage.
         /// 
         /// Node Features:
@@ -399,12 +403,9 @@ namespace SOSXR.AssetDependencyGraph
             var assetGUID = AssetDatabase.AssetPathToGUID(assetPath);
 
             // Check if we've already created a node for this asset (deduplication)
+            // userData holds the layout depth (column), so a reused node keeps the depth it was first given
             if (m_GUIDNodeLookup.TryGetValue(assetGUID, out resultNode))
             {
-                // Increment depth counter to track how many times this asset appears
-                var currentDepth = (int) resultNode.userData;
-                resultNode.userData = currentDepth + 1;
-
                 return resultNode;
             }
 

@@ -18,6 +18,10 @@ namespace SOSXR.Setup
     /// </summary>
     public static class ProjectSetup
     {
+        /// <summary>
+        ///     Imports essential Asset Store packages from the local Asset Store cache. Packages that are not found are skipped with a warning.
+        ///     The LOD tool falls back to a second package if the first is missing. Bakery is imported only on non-macOS editors.
+        /// </summary>
         [MenuItem("SOSXR/Setup/Import Essential Assets")]
         public static void ImportEssentials()
         {
@@ -100,6 +104,11 @@ namespace SOSXR.Setup
         }
 
 
+        /// <summary>
+        ///     Creates the _SOSXR folder layout, moves the default Scenes, Settings and Scripts folders into it, and renames Scenes and Scripts with an underscore prefix.
+        ///     Also deletes TutorialInfo and Readme.asset, and moves InputSystem_Actions into _SOSXR/Settings.
+        ///     Asks whether to disable domain and scene reload on entering Play Mode. Only the Disable reloads button changes that setting.
+        /// </summary>
         [MenuItem("SOSXR/Setup/Create Folders", priority = 1)]
         public static void CreateFolders()
         {
@@ -123,8 +132,17 @@ namespace SOSXR.Setup
             DeleteAsset("Assets/Readme.asset");
             Refresh();
 
-            // Optional: Disable Domain Reload
-            EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
+            // Optional: Disable Domain Reload. Changes play mode behaviour project-wide, so ask first (default No)
+            var disableReload = EditorUtility.DisplayDialog("Enter Play Mode Options",
+                "Disable Domain Reload and Scene Reload when entering Play Mode?\n\n"
+                + "This makes entering Play Mode faster, but static state and scene objects are no longer reset.",
+                "Disable reloads",
+                "No");
+
+            if (disableReload)
+            {
+                EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
+            }
         }
 
 
