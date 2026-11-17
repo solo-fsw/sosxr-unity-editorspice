@@ -152,6 +152,87 @@ namespace SOSXR.EditorSpice.EditorScripts
 
 
         /// <summary>
+        ///     Returns the `git ls-remote` patterns for a revision. `git ls-remote` patterns match the end of a ref name, so a bare
+        ///     "main" would also match "refs/heads/feature/main". A named revision is therefore asked for by its exact refs:
+        ///     "refs/heads/rev", "refs/tags/rev" and "refs/tags/rev^{}". "HEAD" (or no revision) and a full ref name ("refs/...") are used as is.
+        /// </summary>
+        public static string[] GetLsRemotePatterns(string revision)
+        {
+            if (string.IsNullOrEmpty(revision) || revision == "HEAD")
+            {
+                return new[] {"HEAD"};
+            }
+
+            if (revision.StartsWith("refs/", StringComparison.Ordinal))
+            {
+                return new[] {revision};
+            }
+
+            return new[] {$"refs/heads/{revision}", $"refs/tags/{revision}", $"refs/tags/{revision}{PeeledSuffix}"};
+        }
+
+
+        /// <summary>
+        ///     Returns the commit hash for <paramref name="revision" /> from `git ls-remote` output.
+        ///     Prefers an exact ref-name match: the peeled tag ("refs/tags/rev^{}"), then the branch ("refs/heads/rev"), then the tag ("refs/tags/rev").
+        ///     A full ref name ("refs/...") matches itself or its peeled line. For "HEAD" or no revision, and when no exact match exists,
+        ///     falls back to <see cref="ParseLsRemoteHash(string)" />.
+        /// </summary>
+        public static string ParseLsRemoteHash(string output, string revision)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+            {
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(revision) || revision == "HEAD")
+            {
+                return ParseLsRemoteHash(output);
+            }
+
+            string[] preferredRefs;
+
+            if (revision.StartsWith("refs/", StringComparison.Ordinal))
+            {
+                preferredRefs = new[] {revision + PeeledSuffix, revision};
+            }
+            else
+            {
+                preferredRefs = new[] {$"refs/tags/{revision}{PeeledSuffix}", $"refs/heads/{revision}", $"refs/tags/{revision}"};
+            }
+
+            var hashes = new string[preferredRefs.Length];
+
+            foreach (var rawLine in output.Split('\n'))
+            {
+                var parts = rawLine.Trim().Split(new[] {'\t', ' '}, StringSplitOptions.RemoveEmptyEntries);
+
+                if (parts.Length < 2 || !IsCommitHash(parts[0]))
+                {
+                    continue;
+                }
+
+                var index = Array.IndexOf(preferredRefs, parts[1]);
+
+                if (index >= 0 && hashes[index] == null)
+                {
+                    hashes[index] = parts[0];
+                }
+            }
+
+            foreach (var hash in hashes)
+            {
+                if (hash != null)
+                {
+                    return hash;
+                }
+            }
+
+            return ParseLsRemoteHash(output);
+        }
+
+
+        /// <summary>
         ///     True when both hashes name the same commit. Accepts a short hash on either side.
         /// </summary>
         public static bool IsSameCommit(string installedHash, string remoteHash)

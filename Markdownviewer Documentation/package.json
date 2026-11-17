@@ -13,12 +13,5 @@
     "type": "git",
     "url": "https://github.com/gwaredd/UnityMarkdownViewer.git"
   },
-  "samples": [
-    {
-      "displayName": "Samples",
-      "description": "Contains samples of this package",
-      "path": "Samples~/Samples"
-    }
-  ],
   "changelogUrl": "https://github.com/solo-fsw/sosxr-unity-markdownviewer/blob/main/CHANGELOG.md"
 }

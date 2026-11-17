@@ -1,6 +1,7 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System;
 using System.Collections;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Unity.EditorCoroutines.Editor;
@@ -26,6 +27,11 @@ namespace SOSXR.BuildHelpers
         /// <param name="report"></param>
         public void OnPostprocessBuild(BuildReport report)
         {
+            if (IsTestRunnerBuild(report))
+            {
+                return;
+            }
+
             EditorCoroutineUtility.StartCoroutineOwnerless(PostProcessBuildCR());
         }
 
@@ -36,15 +42,16 @@ namespace SOSXR.BuildHelpers
         /// </summary>
         public void OnPreprocessBuild(BuildReport report)
         {
+            if (IsTestRunnerBuild(report))
+            {
+                return;
+            }
+
             GetBuildInfoDetailsFile();
 
             _buildInfoDetails.TotalAttemptedBuilds++;
 
-            SeedLastSuccessfulVersion(
-                _buildInfoDetails,
-                PlayerSettings.bundleVersion,
-                PlayerSettings.Android.bundleVersionCode
-            );
+            SeedLastSuccessfulVersion(_buildInfoDetails, PlayerSettings.bundleVersion, PlayerSettings.Android.bundleVersionCode);
 
             ApplyNextVersion();
 
@@ -55,6 +62,14 @@ namespace SOSXR.BuildHelpers
             WritePreBuildInfoToFile();
         }
 
+        /// <summary>
+        ///     Player builds made by the Unity Test Runner include the test assemblies.
+        ///     They must not bump counters, change the version or add CSV rows.
+        /// </summary>
+        private static bool IsTestRunnerBuild(BuildReport report)
+        {
+            return report != null && (report.summary.options & BuildOptions.IncludeTestAssemblies) != 0;
+        }
 
         /// <summary>
         ///     Marks the ScriptableObject dirty and writes it to disk.
@@ -93,9 +108,7 @@ namespace SOSXR.BuildHelpers
                 AssetDatabase.CreateAsset(_buildInfoDetails, assetPath);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
-                Debug.Log(
-                    $"A config file has been created at {assetPath}. You can move this anywhere you'd like."
-                );
+                Debug.Log($"A config file has been created at {assetPath}. You can move this anywhere you'd like.");
             }
             else
             {
@@ -108,11 +121,7 @@ namespace SOSXR.BuildHelpers
         ///     Derive it once from the current PlayerSettings values.
         ///     If the previous build did not succeed, the current values belong to that build, so the last success is one lower.
         /// </summary>
-        public static void SeedLastSuccessfulVersion(
-            BuildInfoDetails details,
-            string currentSemVer,
-            int currentBundleVersionCode
-        )
+        public static void SeedLastSuccessfulVersion(BuildInfoDetails details, string currentSemVer, int currentBundleVersionCode)
         {
             if (!string.IsNullOrEmpty(details.LastSuccessfulSemVer))
             {
@@ -121,83 +130,55 @@ namespace SOSXR.BuildHelpers
 
             var previousBuildSucceeded = details.LastBuildResult == BuildResult.Succeeded;
 
-            details.LastSuccessfulSemVer = previousBuildSucceeded
-                ? currentSemVer
-                : GenerateNextVersion(
-                    currentSemVer,
-                    false,
-                    IsDevelopmentVersion(currentSemVer, details),
-                    details.DevelopmentBuildIndicator,
-                    details.ProductionBuildIndicator,
-                    details.InitialSemVer
-                );
+            details.LastSuccessfulSemVer = previousBuildSucceeded ? currentSemVer : GenerateNextVersion(currentSemVer, false, IsDevelopmentVersion(currentSemVer, details), details.DevelopmentBuildIndicator, details.ProductionBuildIndicator, details.InitialSemVer);
 
-            details.LastSuccessfulBundleVersionCode = previousBuildSucceeded
-                ? currentBundleVersionCode
-                : Math.Max(0, currentBundleVersionCode - 1);
+            details.LastSuccessfulBundleVersionCode = previousBuildSucceeded ? currentBundleVersionCode : Math.Max(0, currentBundleVersionCode - 1);
         }
-
 
         /// <summary>
         ///     The version for the upcoming build: one higher than the last successful build.
         /// </summary>
-        public static (string semVer, int bundleVersionCode) GetNextVersion(
-            BuildInfoDetails details,
-            bool development
-        )
+        public static (string semVer, int bundleVersionCode) GetNextVersion(BuildInfoDetails details, bool development)
         {
-            var semVer = GenerateNextVersion(
-                details.LastSuccessfulSemVer,
-                true,
-                development,
-                details.DevelopmentBuildIndicator,
-                details.ProductionBuildIndicator,
-                details.InitialSemVer
-            );
+            var semVer = GenerateNextVersion(details.LastSuccessfulSemVer, true, development, details.DevelopmentBuildIndicator, details.ProductionBuildIndicator, details.InitialSemVer);
 
             var bundleVersionCode = Math.Max(0, details.LastSuccessfulBundleVersionCode) + 1;
 
             return (semVer, bundleVersionCode);
         }
 
-
         /// <summary>
         ///     Stores the version of the build that just succeeded, so the next build continues from it.
+        ///     The Android bundle version code is only set for Android builds, so it is only recorded for those.
+        ///     Other builds keep the previously recorded code.
         /// </summary>
-        public static void RecordSuccessfulBuild(BuildInfoDetails details)
+        public static void RecordSuccessfulBuild(BuildInfoDetails details, bool androidBuild)
         {
             details.LastSuccessfulSemVer = details.SemVer;
-            details.LastSuccessfulBundleVersionCode = details.AndroidBundleVersionCode;
-        }
 
+            if (androidBuild)
+            {
+                details.LastSuccessfulBundleVersionCode = details.AndroidBundleVersionCode;
+            }
+        }
 
         private static bool IsDevelopmentVersion(string semVer, BuildInfoDetails details)
         {
-            return !string.IsNullOrEmpty(semVer)
-                && !string.IsNullOrEmpty(details.DevelopmentBuildIndicator)
-                && semVer.EndsWith(details.DevelopmentBuildIndicator);
+            return !string.IsNullOrEmpty(semVer) && !string.IsNullOrEmpty(details.DevelopmentBuildIndicator) && semVer.EndsWith(details.DevelopmentBuildIndicator);
         }
-
 
         /// <summary>
         ///     Writes the next version to the BuildInfoDetails and PlayerSettings.
         /// </summary>
         private static void ApplyNextVersion()
         {
-            var (semVer, bundleVersionCode) = GetNextVersion(
-                _buildInfoDetails,
-                EditorUserBuildSettings.development
-            );
+            var (semVer, bundleVersionCode) = GetNextVersion(_buildInfoDetails, EditorUserBuildSettings.development);
 
             _buildInfoDetails.OldSemVer = PlayerSettings.bundleVersion;
             _buildInfoDetails.SemVer = semVer;
             PlayerSettings.bundleVersion = semVer;
 
-            Debug.LogFormat(
-                "SemanticVersion: Updated SemVer from {0} to {1}",
-                _buildInfoDetails.OldSemVer,
-                _buildInfoDetails.SemVer
-            );
+            Debug.LogFormat("SemanticVersion: Updated SemVer from {0} to {1}", _buildInfoDetails.OldSemVer, _buildInfoDetails.SemVer);
 
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
             {
@@ -208,11 +189,7 @@ namespace SOSXR.BuildHelpers
             _buildInfoDetails.AndroidBundleVersionCode = bundleVersionCode;
             PlayerSettings.Android.bundleVersionCode = bundleVersionCode;
 
-            Debug.LogFormat(
-                "SemanticVersion: Updated Android Bundle Version Code from {0} to {1}",
-                _buildInfoDetails.OldBundleVersionCode,
-                _buildInfoDetails.AndroidBundleVersionCode
-            );
+            Debug.LogFormat("SemanticVersion: Updated Android Bundle Version Code from {0} to {1}", _buildInfoDetails.OldBundleVersionCode, _buildInfoDetails.AndroidBundleVersionCode);
         }
 
         private static IEnumerator PostProcessBuildCR()
@@ -233,9 +210,9 @@ namespace SOSXR.BuildHelpers
             var buildReport = BuildReport.GetLatestReport();
 
             var fileInfo = new FileInfo(buildReport.summary.outputPath);
-            var fileSizeMB = Math.Round(fileInfo.Length / (1000f * 1000f), 1);
+            var fileSizeMB = Math.Round(fileInfo.Length / (1000f * 1000f), 0);
 
-            Debug.Log($"Build size: {fileSizeMB} MB");
+            Debug.Log($"Build size: {fileSizeMB.ToString(CultureInfo.InvariantCulture)} MB");
         }
 
         /// <summary>
@@ -264,19 +241,10 @@ namespace SOSXR.BuildHelpers
             if (buildReport.summary.result == BuildResult.Succeeded)
             {
                 _buildInfoDetails.TotalSuccessBuilds++;
-                RecordSuccessfulBuild(_buildInfoDetails);
+                RecordSuccessfulBuild(_buildInfoDetails, buildReport.summary.platform == BuildTarget.Android);
             }
 
-            var buildInfo = new[]
-            {
-                string.Concat(
-                    ", ",
-                    Math.Round(buildReport.summary.totalTime.TotalSeconds, 0).ToString()
-                ),
-                fileSizeMB.ToString(),
-                _buildInfoDetails.TotalSuccessBuilds.ToString(),
-                buildReport.summary.result.ToString(),
-            };
+            var buildInfo = new[] { string.Concat(", ", Math.Round(buildReport.summary.totalTime.TotalSeconds, 0).ToString(CultureInfo.InvariantCulture)), fileSizeMB.ToString(CultureInfo.InvariantCulture), _buildInfoDetails.TotalSuccessBuilds.ToString(CultureInfo.InvariantCulture), buildReport.summary.result.ToString() };
 
             using var sw = File.AppendText(_buildInfoDetails.FilePath);
 
@@ -289,17 +257,11 @@ namespace SOSXR.BuildHelpers
 
         private static string GetAssetPath()
         {
-            var paths = AssetDatabase
-                .FindAssets($"t:{nameof(BuildInfoDetails)}")
-                .Select(AssetDatabase.GUIDToAssetPath)
-                .Where(c => c.EndsWith(".asset"))
-                .ToList();
+            var paths = AssetDatabase.FindAssets($"t:{nameof(BuildInfoDetails)}").Select(AssetDatabase.GUIDToAssetPath).Where(c => c.EndsWith(".asset")).ToList();
 
             if (paths.Count > 1)
             {
-                Debug.LogWarning(
-                    "Multiple Build Info Detail assets found. Delete until you have only one."
-                );
+                Debug.LogWarning("Multiple Build Info Detail assets found. Delete until you have only one.");
             }
 
             return paths.FirstOrDefault();
@@ -308,20 +270,10 @@ namespace SOSXR.BuildHelpers
         /// <summary>
         ///     Pure version of the patch increment. Separated so it can be unit tested.
         /// </summary>
-        public static string GenerateNextVersion(
-            string version,
-            bool increment,
-            bool development,
-            string developmentIndicator,
-            string productionIndicator,
-            string initialSemVer
-        )
+        public static string GenerateNextVersion(string version, bool increment, bool development, string developmentIndicator, string productionIndicator, string initialSemVer)
         {
             var buildIndicator = development ? developmentIndicator : productionIndicator;
-            version = (version ?? string.Empty).TrimEnd(
-                Convert.ToChar(developmentIndicator),
-                Convert.ToChar(productionIndicator)
-            ); // Remove build indicator if present
+            version = StripBuildIndicator(version ?? string.Empty, developmentIndicator, productionIndicator); // Remove build indicator if present
 
             var parts = version.Split('_');
 
@@ -329,10 +281,7 @@ namespace SOSXR.BuildHelpers
             {
                 var initialVersion = $"{initialSemVer}{buildIndicator}";
 
-                Debug.LogWarning(
-                    $"[SemanticVersion] Invalid version format \"{version}\". "
-                        + $"Expected format like '0_0_0{buildIndicator}' or 'alpha-1_32_2{buildIndicator}'. Resetting to initial version {initialVersion}"
-                );
+                Debug.LogWarning($"[SemanticVersion] Invalid version format \"{version}\". " + $"Expected format like '0_0_0{buildIndicator}' or 'alpha-1_32_2{buildIndicator}'. Resetting to initial version {initialVersion}");
 
                 return initialVersion;
             }
@@ -340,6 +289,25 @@ namespace SOSXR.BuildHelpers
             parts[^1] = (increment ? currentNumber + 1 : Math.Max(0, currentNumber - 1)).ToString();
 
             return $"{string.Join("_", parts)}{buildIndicator}";
+        }
+
+        /// <summary>
+        ///     Removes one trailing build indicator. Null, empty and multi-character indicators are allowed.
+        ///     The longer indicator is tried first, so "dp" is not shortened by an indicator "p" when "dp" is also an indicator.
+        /// </summary>
+        private static string StripBuildIndicator(string version, string developmentIndicator, string productionIndicator)
+        {
+            var indicators = new[] { developmentIndicator, productionIndicator }.Where(i => !string.IsNullOrEmpty(i)).OrderByDescending(i => i.Length);
+
+            foreach (var indicator in indicators)
+            {
+                if (version.EndsWith(indicator, StringComparison.Ordinal))
+                {
+                    return version.Substring(0, version.Length - indicator.Length);
+                }
+            }
+
+            return version;
         }
 
         public static void WritePreBuildInfoToFile()
@@ -360,9 +328,7 @@ namespace SOSXR.BuildHelpers
 
             AppendBuildInfoToFile();
 
-            Debug.Log(
-                $"SemanticVersion: Appended build information to {_buildInfoDetails.FilePath}"
-            );
+            Debug.Log($"SemanticVersion: Appended build information to {_buildInfoDetails.FilePath}");
         }
 
         private static void EnsureDirectoryExists(string path)
@@ -381,39 +347,12 @@ namespace SOSXR.BuildHelpers
         public static void WriteHeadersToFile()
         {
             using var sw = File.CreateText(_buildInfoDetails.FilePath);
-            sw.WriteLine(
-                "PackageName, UnityVersion, TotalAttemptedBuilds, BuildTarget, ScriptingBackend, APICompatibility, ProductionBuild, SemVer, AndroidBundleCode, BuildDate, BuildTime, BuildDurationSec, BuildSizeMB, TotalSuccessBuilds, Result"
-            );
+            sw.WriteLine("PackageName, UnityVersion, TotalAttemptedBuilds, BuildTarget, ScriptingBackend, APICompatibility, ProductionBuild, SemVer, AndroidBundleCode, BuildDate, BuildTime, BuildDurationSec, BuildSizeMB, TotalSuccessBuilds, Result");
         }
 
         private static void AppendBuildInfoToFile()
         {
-            var buildInfo = new[]
-            {
-                PlayerSettings.applicationIdentifier,
-                Application.unityVersion,
-                _buildInfoDetails.TotalAttemptedBuilds.ToString(),
-                EditorUserBuildSettings.activeBuildTarget.ToString(),
-                PlayerSettings
-                    .GetScriptingBackend(
-                        NamedBuildTarget.FromBuildTargetGroup(
-                            EditorUserBuildSettings.selectedBuildTargetGroup
-                        )
-                    )
-                    .ToString(),
-                PlayerSettings
-                    .GetApiCompatibilityLevel(
-                        NamedBuildTarget.FromBuildTargetGroup(
-                            EditorUserBuildSettings.selectedBuildTargetGroup
-                        )
-                    )
-                    .ToString(),
-                (!EditorUserBuildSettings.development).ToString(),
-                PlayerSettings.bundleVersion,
-                PlayerSettings.Android.bundleVersionCode.ToString(),
-                DateTime.Now.ToString("yyyy-MM-dd"),
-                DateTime.Now.ToString("HH:mm"),
-            };
+            var buildInfo = new[] { PlayerSettings.applicationIdentifier, Application.unityVersion, _buildInfoDetails.TotalAttemptedBuilds.ToString(CultureInfo.InvariantCulture), EditorUserBuildSettings.activeBuildTarget.ToString(), PlayerSettings.GetScriptingBackend(NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup)).ToString(), PlayerSettings.GetApiCompatibilityLevel(NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup)).ToString(), (!EditorUserBuildSettings.development).ToString(), PlayerSettings.bundleVersion, PlayerSettings.Android.bundleVersionCode.ToString(CultureInfo.InvariantCulture), DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), DateTime.Now.ToString("HH:mm", CultureInfo.InvariantCulture) };
 
             using var sw = File.AppendText(_buildInfoDetails.FilePath);
             sw.Write(string.Join(", ", buildInfo));

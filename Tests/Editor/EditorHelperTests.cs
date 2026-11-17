@@ -31,6 +31,17 @@ namespace SOSXR.EditorSpice.Tests
 
             Assert.AreEqual("0_0_1p", BuildInfoManager.GenerateNextVersion("garbage", true, false, "d", "p", "0_0_1"));
         }
+
+
+        [TestCase("0_0_1", true, true, "", "", "0_0_2")]
+        [TestCase("0_0_1", true, false, null, null, "0_0_2")]
+        [TestCase("0_0_1-dev", true, true, "-dev", "-prod", "0_0_2-dev")]
+        [TestCase("0_0_1-prod", true, true, "-dev", "-prod", "0_0_2-dev")]
+        [TestCase("0_0_1p", true, false, "", "p", "0_0_2p")]
+        public void GenerateNextVersion_EmptyOrMultiCharacterIndicators_DoesNotThrow(string version, bool increment, bool development, string developmentIndicator, string productionIndicator, string expected)
+        {
+            Assert.AreEqual(expected, BuildInfoManager.GenerateNextVersion(version, increment, development, developmentIndicator, productionIndicator, "0_0_1"));
+        }
     }
 
 
@@ -129,7 +140,7 @@ namespace SOSXR.EditorSpice.Tests
             ApplyNextVersion();
             Assert.AreEqual("0_0_6d", _details.SemVer);
             Assert.AreEqual(6, _details.AndroidBundleVersionCode);
-            BuildInfoManager.RecordSuccessfulBuild(_details);
+            BuildInfoManager.RecordSuccessfulBuild(_details, true);
 
             // Failed build: nothing recorded
             ApplyNextVersion();
@@ -143,12 +154,42 @@ namespace SOSXR.EditorSpice.Tests
             ApplyNextVersion();
             Assert.AreEqual("0_0_7d", _details.SemVer);
             Assert.AreEqual(7, _details.AndroidBundleVersionCode);
-            BuildInfoManager.RecordSuccessfulBuild(_details);
+            BuildInfoManager.RecordSuccessfulBuild(_details, true);
 
             // Next success is one higher than the last success
             ApplyNextVersion();
             Assert.AreEqual("0_0_8d", _details.SemVer);
             Assert.AreEqual(8, _details.AndroidBundleVersionCode);
+        }
+
+
+        [Test]
+        public void RecordSuccessfulBuild_NonAndroidBuild_KeepsLastBundleVersionCode()
+        {
+            _details.LastSuccessfulSemVer = "0_0_5d";
+            _details.LastSuccessfulBundleVersionCode = 5;
+
+            // A non-Android build only sets the SemVer; AndroidBundleVersionCode keeps a stale value
+            _details.SemVer = "0_0_6d";
+            _details.AndroidBundleVersionCode = 0;
+
+            BuildInfoManager.RecordSuccessfulBuild(_details, false);
+
+            Assert.AreEqual("0_0_6d", _details.LastSuccessfulSemVer);
+            Assert.AreEqual(5, _details.LastSuccessfulBundleVersionCode);
+            Assert.AreEqual(6, BuildInfoManager.GetNextVersion(_details, true).bundleVersionCode);
+        }
+
+
+        [Test]
+        public void RecordSuccessfulBuild_AndroidBuild_RecordsBundleVersionCode()
+        {
+            _details.SemVer = "0_0_6d";
+            _details.AndroidBundleVersionCode = 6;
+
+            BuildInfoManager.RecordSuccessfulBuild(_details, true);
+
+            Assert.AreEqual(6, _details.LastSuccessfulBundleVersionCode);
         }
 
 

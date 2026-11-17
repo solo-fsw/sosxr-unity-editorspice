@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+## [0.8.0] 17-11-2026
 
 ### Added
 
@@ -17,6 +17,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - EditMode tests: `AudioClipProcessorTests`, `WavUtilityTests`, `AudioEditorTests`, `VideoTrimMathTests`, `VideoEditorTests`.
 - `BatchPackageUpdater` window: check the project's Git (and optionally registry) packages for updates, select several, and update them in one Package Manager request. Menu: `SOSXR/Batch Package Updater`.
 - `PackageUpdateMath` helpers for package ids, Git URLs, `git ls-remote` output and SemVer comparison. EditMode tests: `PackageUpdateMathTests`.
+- `PackageUpdateMath.GetLsRemotePatterns(string)` and `PackageUpdateMath.ParseLsRemoteHash(string output, string revision)`.
 
 ### Changed
 
@@ -27,6 +28,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - `AudioEditor` moved from `WIP/AudioEditor.cs` to `Editor/AudioEditor/`. Assembly: `SOSXR.EditorSpice.EditorScripts`.
 - `VideoEditor` changed from a WIP MonoBehaviour (`WIP/VideoEditor.cs` + `VideoEditorEditor.cs`) to an EditorWindow in `Editor/VideoEditor/`. Assembly: `SOSXR.EditorSpice.EditorScripts`.
 - Sample scene `Demo_Scene_VideoEditor` no longer contains the `VideoEditor` component.
+- `BuildInfoManager.RecordSuccessfulBuild` now takes a second argument, `bool androidBuild`.
 
 ### Fixed
 
@@ -35,6 +37,13 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - Sample `ToggleUsingHierarchyIcon` had a pre-6000.3 branch that could not compile (handler takes `EntityId`). Removed.
 - `WavUtility` wrote the header over the first 44 bytes of sample data. The header now comes before the samples.
 - `WavUtility` wrote an incorrect RIFF chunk size. The size now covers all data after the size field.
+- Build Helpers: a successful non-Android build no longer overwrites the stored Android bundle version code, so the next Android build cannot get a lower code.
+- Build Helpers: numbers and dates in `build_info.csv` are written with the invariant culture, so a decimal comma no longer adds a column.
+- Build Helpers: an empty or multi-character development/production indicator no longer throws.
+- Build Helpers: Unity Test Runner player builds no longer change the version, the counters or the CSV.
+- Batch Package Updater: a branch or tag name is now matched exactly, so `main` no longer matches `feature/main`.
+- Batch Package Updater: registry packages that are up to date can no longer be selected, so "All" cannot downgrade a package.
+- Markdown Viewer `package.json`: removed a samples entry that pointed to a missing folder.
 
 ### Removed
 

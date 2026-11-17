@@ -175,6 +175,7 @@ Turn on **Registry packages** in the toolbar to also list registry packages (for
 - The check runs `git ls-remote` for each Git package. Git must be on the PATH, as for any UPM Git dependency. Credential prompts are turned off, so a private repository without stored credentials shows an error instead of hanging.
 - A Git package is updated by adding its manifest URL again. UPM then fetches the newest commit of the branch or tag in the URL.
 - Packages pinned to a commit hash (`#<hash>`) can't be selected: they never change.
+- Up-to-date registry packages can't be selected, so an update can't downgrade them.
 
 ### Related Classes
 
@@ -195,9 +196,8 @@ You can use TextMeshPro alongside the `ShowBuildInfo` script to display the buil
 a [DestroyInProductionBuild script](https://github.com/mrstruijk/BuildHelpers/blob/main/Runtime/DestroyInProductionBuild.cs)
 to show the build info in a scene in a Development build, but have it automatically stripped from production builds.
 
-The build number is logged to a CSV file stored at `Assets/SOSXR/Resources/build_info.csv`, including timestamps and
-whether the build is production / development. It runs automatically at build start and increments the build number after a successful
-build.
+The build number is logged to a CSV file stored at `Assets/_SOSXR/Resources/build_info.csv`, including timestamps and
+whether the build is production / development. It runs automatically at build start. Each build takes the last successful build's number plus one. Failed, cancelled and unfinished builds do not use up a number.
 
 You must manually increment the first and second positions of the SemVer numbers. The package only increments the
 final ('patch') position:

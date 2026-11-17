@@ -93,6 +93,89 @@ namespace SOSXR.EditorSpice.Tests
         }
 
 
+        [Test]
+        public void GetLsRemotePatterns_NamedRevision_AsksForExactRefs()
+        {
+            CollectionAssert.AreEqual(new[] {"refs/heads/main", "refs/tags/main", "refs/tags/main^{}"}, PackageUpdateMath.GetLsRemotePatterns("main"));
+        }
+
+
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("HEAD")]
+        public void GetLsRemotePatterns_NoRevisionOrHead_AsksForHead(string revision)
+        {
+            CollectionAssert.AreEqual(new[] {"HEAD"}, PackageUpdateMath.GetLsRemotePatterns(revision));
+        }
+
+
+        [Test]
+        public void GetLsRemotePatterns_FullRefName_IsUsedAsIs()
+        {
+            CollectionAssert.AreEqual(new[] {"refs/heads/main"}, PackageUpdateMath.GetLsRemotePatterns("refs/heads/main"));
+        }
+
+
+        [Test]
+        public void ParseLsRemoteHash_WithRevision_IgnoresTailMatchOnOtherBranch()
+        {
+            var output = $"{HashA}\trefs/heads/feature/main\n{HashB}\trefs/heads/main\n";
+
+            Assert.AreEqual(HashB, PackageUpdateMath.ParseLsRemoteHash(output, "main"));
+        }
+
+
+        [Test]
+        public void ParseLsRemoteHash_WithRevision_PrefersPeeledTagThenBranchThenTag()
+        {
+            const string hashC = "1111111111111111111111111111111111111111";
+            var output = $"{HashA}\trefs/tags/v1\n{HashB}\trefs/heads/v1\n{hashC}\trefs/tags/v1^{{}}\n";
+
+            Assert.AreEqual(hashC, PackageUpdateMath.ParseLsRemoteHash(output, "v1"));
+            Assert.AreEqual(HashB, PackageUpdateMath.ParseLsRemoteHash($"{HashA}\trefs/tags/v1\n{HashB}\trefs/heads/v1\n", "v1"));
+            Assert.AreEqual(HashA, PackageUpdateMath.ParseLsRemoteHash($"{HashA}\trefs/tags/v1\n", "v1"));
+        }
+
+
+        [Test]
+        public void ParseLsRemoteHash_WithHeadRevision_ReturnsHeadHash()
+        {
+            Assert.AreEqual(HashA, PackageUpdateMath.ParseLsRemoteHash($"{HashA}\tHEAD\n", "HEAD"));
+        }
+
+
+        [Test]
+        public void Entry_RegistryUpToDate_CannotUpdate()
+        {
+            var entry = new BatchPackageUpdater.Entry
+            {
+                Source = UnityEditor.PackageManager.PackageSource.Registry,
+                AddIdentifier = "com.foo@1.0.0",
+                State = BatchPackageUpdater.UpdateState.UpToDate
+            };
+
+            Assert.IsFalse(entry.CanUpdate);
+
+            entry.State = BatchPackageUpdater.UpdateState.UpdateAvailable;
+
+            Assert.IsTrue(entry.CanUpdate);
+        }
+
+
+        [Test]
+        public void Entry_GitUpToDate_CanStillUpdate()
+        {
+            var entry = new BatchPackageUpdater.Entry
+            {
+                Source = UnityEditor.PackageManager.PackageSource.Git,
+                AddIdentifier = "https://github.com/a/b.git#main",
+                State = BatchPackageUpdater.UpdateState.UpToDate
+            };
+
+            Assert.IsTrue(entry.CanUpdate);
+        }
+
+
         [TestCase(HashA, HashA, true)]
         [TestCase(HashA, "0123456", true)]
         [TestCase("0123456", HashA, true)]

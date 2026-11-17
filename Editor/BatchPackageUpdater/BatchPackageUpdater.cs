@@ -222,7 +222,7 @@ namespace SOSXR.EditorSpice.EditorScripts
             Task.Run(() =>
             {
                 var output = RunGitLsRemote(remote, revision, out var error);
-                var remoteHash = PackageUpdateMath.ParseLsRemoteHash(output);
+                var remoteHash = PackageUpdateMath.ParseLsRemoteHash(output, revision);
 
                 if (remoteHash == null)
                 {
@@ -252,7 +252,9 @@ namespace SOSXR.EditorSpice.EditorScripts
         {
             error = null;
 
-            var startInfo = new ProcessStartInfo("git", $"ls-remote \"{remote}\" \"{revision}\"")
+            var patterns = string.Join(" ", PackageUpdateMath.GetLsRemotePatterns(revision).Select(p => $"\"{p}\""));
+
+            var startInfo = new ProcessStartInfo("git", $"ls-remote \"{remote}\" {patterns}")
             {
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -549,9 +551,11 @@ namespace SOSXR.EditorSpice.EditorScripts
             public bool Selected;
 
             /// <summary>
-            ///     Pinned Git packages never change, so they can't be selected. Other packages can, even when the check failed.
+            ///     Pinned Git packages never change, so they can't be selected. Other Git packages can, even when the check failed.
+            ///     Registry packages can only be selected when an update is available: adding "name@latestCompatible" to an up-to-date
+            ///     package could downgrade one installed above that version.
             /// </summary>
-            public bool CanUpdate => State != UpdateState.Pinned && !string.IsNullOrEmpty(AddIdentifier);
+            public bool CanUpdate => State != UpdateState.Pinned && !string.IsNullOrEmpty(AddIdentifier) && (Source != PackageSource.Registry || State == UpdateState.UpdateAvailable);
         }
     }
 }
