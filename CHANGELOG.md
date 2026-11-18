@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [Unreleased]
+
+### Added
+
+- `BatchPackageUpdater` shows the version a Git package updates to (`0.7.0 → 0.8.0  (abc1234 → def5678)`). It reads `package.json` at the remote commit with a shallow, blobless fetch into a temporary folder.
+- `PackageUpdateMath.GetPackageJsonPath`, `ParsePackageJsonVersion` and `FormatGitUpdateMessage`, with EditMode tests.
+
+### Fixed
+
+- `BatchPackageUpdater` no longer logs "Update failed:" with an empty error after a successful update. An update that reloads the domain (for example of EditorSpice itself) left a stale request behind. The window now remembers the pending updates in `SessionState`, and after the refresh it checks each package's installed commit or version and logs which packages updated.
+
 ## [0.8.0] 17-11-2026
 
 ### Added

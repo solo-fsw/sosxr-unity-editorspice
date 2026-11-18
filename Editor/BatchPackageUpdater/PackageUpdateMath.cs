@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 
 namespace SOSXR.EditorSpice.EditorScripts
@@ -300,6 +303,142 @@ namespace SOSXR.EditorSpice.EditorScripts
             }
 
             return ComparePreRelease(preA, preB);
+        }
+
+
+        /// <summary>
+        ///     Returns the repository-relative path of the package.json from the "?path=" part of a Git URL.
+        ///     "https://host/repo.git?path=/Packages/com.foo#main" gives "Packages/com.foo/package.json". No path gives "package.json".
+        /// </summary>
+        public static string GetPackageJsonPath(string gitUrl)
+        {
+            const string pathKey = "path=";
+
+            var subPath = string.Empty;
+
+            if (!string.IsNullOrEmpty(gitUrl))
+            {
+                var url = gitUrl;
+                var hash = url.IndexOf('#');
+
+                if (hash >= 0)
+                {
+                    url = url.Substring(0, hash);
+                }
+
+                var query = url.IndexOf('?');
+
+                if (query >= 0)
+                {
+                    foreach (var parameter in url.Substring(query + 1).Split('&'))
+                    {
+                        if (parameter.StartsWith(pathKey, StringComparison.Ordinal))
+                        {
+                            subPath = Uri.UnescapeDataString(parameter.Substring(pathKey.Length)).Trim('/');
+                        }
+                    }
+                }
+            }
+
+            return subPath.Length == 0 ? "package.json" : $"{subPath}/package.json";
+        }
+
+
+        /// <summary>
+        ///     Returns the value of the first "version" key in package.json text, or null when there is none.
+        /// </summary>
+        public static string ParsePackageJsonVersion(string json)
+        {
+            if (string.IsNullOrEmpty(json))
+            {
+                return null;
+            }
+
+            var match = Regex.Match(json, "\"version\"\\s*:\\s*\"([^\"]*)\"");
+
+            return match.Success && match.Groups[1].Value.Length > 0 ? match.Groups[1].Value : null;
+        }
+
+
+        /// <summary>
+        ///     Message for a Git package with a newer commit: "0.7.0 → 0.8.0  (abc1234 → def5678)".
+        ///     Without a remote version only the commits are shown.
+        /// </summary>
+        public static string FormatGitUpdateMessage(string installedVersion, string remoteVersion, string installedHash, string remoteHash)
+        {
+            var commits = $"{ShortHash(installedHash)} → {ShortHash(remoteHash)}";
+
+            if (string.IsNullOrEmpty(remoteVersion))
+            {
+                return commits;
+            }
+
+            return $"{installedVersion} → {remoteVersion}  ({commits})";
+        }
+
+
+        /// <summary>
+        ///     Writes pending updates (package name, expected commit hash or version) as "name\texpected" lines.
+        ///     The expected value may be empty when it is unknown.
+        /// </summary>
+        public static string SerializePendingUpdates(IEnumerable<KeyValuePair<string, string>> updates)
+        {
+            if (updates == null)
+            {
+                return string.Empty;
+            }
+
+            return string.Join("\n", updates.Where(u => !string.IsNullOrEmpty(u.Key)).Select(u => $"{u.Key}\t{u.Value ?? string.Empty}"));
+        }
+
+
+        /// <summary>
+        ///     Reads the text from <see cref="SerializePendingUpdates" /> back into package name → expected commit hash or version.
+        /// </summary>
+        public static Dictionary<string, string> ParsePendingUpdates(string text)
+        {
+            var result = new Dictionary<string, string>();
+
+            if (string.IsNullOrEmpty(text))
+            {
+                return result;
+            }
+
+            foreach (var rawLine in text.Split('\n'))
+            {
+                var line = rawLine.TrimEnd('\r');
+
+                if (line.Length == 0)
+                {
+                    continue;
+                }
+
+                var tab = line.IndexOf('\t');
+                var name = tab < 0 ? line : line.Substring(0, tab);
+                var expected = tab < 0 ? string.Empty : line.Substring(tab + 1);
+
+                if (name.Length > 0)
+                {
+                    result[name] = expected;
+                }
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        ///     True when the installed package matches what the update expected: the commit for Git packages, the version for registry packages.
+        ///     An empty expected value can't be checked and counts as applied.
+        /// </summary>
+        public static bool IsUpdateApplied(bool isGit, string installedVersion, string installedHash, string expected)
+        {
+            if (string.IsNullOrEmpty(expected))
+            {
+                return true;
+            }
+
+            return isGit ? IsSameCommit(installedHash, expected) : string.Equals(installedVersion, expected, StringComparison.Ordinal);
         }
 
 

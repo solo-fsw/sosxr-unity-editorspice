@@ -163,7 +163,7 @@ Unity's Package Manager window updates one package at a time. This window update
 ### How to Use
 
 1. Select **SOSXR > Batch Package Updater** from the menu bar.
-2. Wait for the update check. Each Git package shows **Up to date**, an update (`installed → remote` commit), **Pinned to a commit**, or an error.
+2. Wait for the update check. Each Git package shows **Up to date**, an update (`0.7.0 → 0.8.0  (abc1234 → def5678)`: installed and new version, then installed and new commit), **Pinned to a commit**, or an error.
 3. Press **Select: Updates** to select every package with an update. Or tick packages by hand.
 4. Press **Update selected (N)**.
 
@@ -173,6 +173,7 @@ Turn on **Registry packages** in the toolbar to also list registry packages (for
 
 - Only direct dependencies from `Packages/manifest.json` are listed. Embedded, local and built-in packages are skipped.
 - The check runs `git ls-remote` for each Git package. Git must be on the PATH, as for any UPM Git dependency. Credential prompts are turned off, so a private repository without stored credentials shows an error instead of hanging.
+- For a Git package with an update, the window reads the new version from `package.json` at the new commit. It fetches only that commit, without file contents except `package.json`, into a temporary folder and deletes the folder afterwards. If that fails, only the commits are shown.
 - A Git package is updated by adding its manifest URL again. UPM then fetches the newest commit of the branch or tag in the URL.
 - Packages pinned to a commit hash (`#<hash>`) can't be selected: they never change.
 - Up-to-date registry packages can't be selected, so an update can't downgrade them.

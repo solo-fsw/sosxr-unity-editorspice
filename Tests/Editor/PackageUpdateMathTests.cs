@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using SOSXR.EditorSpice.EditorScripts;
 
@@ -220,6 +221,95 @@ namespace SOSXR.EditorSpice.Tests
         public void ShortHash_TruncatesToSeven(string hash, string expected)
         {
             Assert.AreEqual(expected, PackageUpdateMath.ShortHash(hash));
+        }
+
+
+        [TestCase("https://github.com/a/b.git", "package.json")]
+        [TestCase("https://github.com/a/b.git#main", "package.json")]
+        [TestCase("https://github.com/a/b.git?path=Packages/com.foo", "Packages/com.foo/package.json")]
+        [TestCase("https://github.com/a/b.git?path=/Packages/com.foo/#v1.0", "Packages/com.foo/package.json")]
+        [TestCase("https://github.com/a/b.git?path=My%20Folder#main", "My Folder/package.json")]
+        [TestCase("https://github.com/a/b.git?path=/", "package.json")]
+        [TestCase(null, "package.json")]
+        public void GetPackageJsonPath_UsesPathQuery(string url, string expected)
+        {
+            Assert.AreEqual(expected, PackageUpdateMath.GetPackageJsonPath(url));
+        }
+
+
+        [Test]
+        public void ParsePackageJsonVersion_ReturnsVersion()
+        {
+            const string json = "{\n  \"name\": \"com.sosxr.foo\",\n  \"version\" : \"0.8.0-pre.1\",\n  \"dependencies\": {\"com.unity.timeline\": \"1.8.8\"}\n}";
+
+            Assert.AreEqual("0.8.0-pre.1", PackageUpdateMath.ParsePackageJsonVersion(json));
+        }
+
+
+        [TestCase("{\"name\": \"com.foo\"}")]
+        [TestCase("{\"version\": \"\"}")]
+        [TestCase("")]
+        [TestCase(null)]
+        public void ParsePackageJsonVersion_NoVersion_ReturnsNull(string json)
+        {
+            Assert.IsNull(PackageUpdateMath.ParsePackageJsonVersion(json));
+        }
+
+
+        [Test]
+        public void FormatGitUpdateMessage_WithVersion_ShowsVersionsAndCommits()
+        {
+            Assert.AreEqual("0.7.0 → 0.8.0  (0123456 → fedcba9)", PackageUpdateMath.FormatGitUpdateMessage("0.7.0", "0.8.0", HashA, HashB));
+        }
+
+
+        [TestCase(null)]
+        [TestCase("")]
+        public void FormatGitUpdateMessage_WithoutVersion_ShowsCommitsOnly(string remoteVersion)
+        {
+            Assert.AreEqual("0123456 → fedcba9", PackageUpdateMath.FormatGitUpdateMessage("0.7.0", remoteVersion, HashA, HashB));
+        }
+
+
+        [Test]
+        public void PendingUpdates_RoundTrip_KeepsNamesAndExpectedValues()
+        {
+            var text = PackageUpdateMath.SerializePendingUpdates(new[]
+            {
+                new KeyValuePair<string, string>("com.sosxr.editorspice", HashA),
+                new KeyValuePair<string, string>("com.unity.timeline", "1.8.9"),
+                new KeyValuePair<string, string>("com.sosxr.plet", null)
+            });
+
+            var parsed = PackageUpdateMath.ParsePendingUpdates(text);
+
+            Assert.AreEqual(3, parsed.Count);
+            Assert.AreEqual(HashA, parsed["com.sosxr.editorspice"]);
+            Assert.AreEqual("1.8.9", parsed["com.unity.timeline"]);
+            Assert.AreEqual(string.Empty, parsed["com.sosxr.plet"]);
+        }
+
+
+        [TestCase("")]
+        [TestCase(null)]
+        [TestCase("\n\r\n")]
+        public void ParsePendingUpdates_Empty_ReturnsEmpty(string text)
+        {
+            Assert.AreEqual(0, PackageUpdateMath.ParsePendingUpdates(text).Count);
+        }
+
+
+        [TestCase(true, "0.7.0", HashA, HashA, true)]
+        [TestCase(true, "0.7.0", HashA, "0123456", true)]
+        [TestCase(true, "0.7.0", HashA, HashB, false)]
+        [TestCase(true, "0.7.0", null, HashB, false)]
+        [TestCase(false, "1.8.9", null, "1.8.9", true)]
+        [TestCase(false, "1.8.8", null, "1.8.9", false)]
+        [TestCase(true, "0.7.0", HashA, "", true)]
+        [TestCase(false, "1.8.8", null, null, true)]
+        public void IsUpdateApplied_ComparesCommitOrVersion(bool isGit, string version, string hash, string expected, bool applied)
+        {
+            Assert.AreEqual(applied, PackageUpdateMath.IsUpdateApplied(isGit, version, hash, expected));
         }
     }
 }
