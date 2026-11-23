@@ -5,6 +5,8 @@ using UnityEngine;
 
 namespace SOSXR.EditorSpice.EditorScripts
 {
+    // Disabled on purpose. Do not enable as is: with _moveToChildren true (the default), selecting a root object
+    // would immediately move all its components to new child objects, without Undo.
     // [CustomEditor(typeof(Transform), true)]
     public class CustomInspectorExtension : Editor
     {

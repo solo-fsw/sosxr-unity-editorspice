@@ -156,22 +156,30 @@ namespace Tarodev
                     continue;
                 }
 
-                // SaveOpenScenes() opens a Save-As dialog for untitled scenes on every interval. Only save scenes that have a path.
-                var saved = 0;
-
-                for (var i = 0; i < SceneManager.sceneCount; i++)
+                // An exception here would end this task silently and stop auto-save until the next domain reload: log it and keep going.
+                try
                 {
-                    var scene = SceneManager.GetSceneAt(i);
+                    // SaveOpenScenes() opens a Save-As dialog for untitled scenes on every interval. Only save scenes that have a path.
+                    var saved = 0;
 
-                    if (scene.IsValid() && scene.isLoaded && CanSaveSceneSilently(scene.path, scene.isDirty) && EditorSceneManager.SaveScene(scene))
+                    for (var i = 0; i < SceneManager.sceneCount; i++)
                     {
-                        saved++;
+                        var scene = SceneManager.GetSceneAt(i);
+
+                        if (scene.IsValid() && scene.isLoaded && CanSaveSceneSilently(scene.path, scene.isDirty) && EditorSceneManager.SaveScene(scene))
+                        {
+                            saved++;
+                        }
+                    }
+
+                    if (_config.Logging && saved > 0)
+                    {
+                        Debug.Log($"Auto-saved at {DateTime.Now:h:mm:ss tt}");
                     }
                 }
-
-                if (_config.Logging && saved > 0)
+                catch (Exception exception)
                 {
-                    Debug.Log($"Auto-saved at {DateTime.Now:h:mm:ss tt}");
+                    Debug.LogException(exception);
                 }
             }
         }

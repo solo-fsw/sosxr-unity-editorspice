@@ -26,6 +26,7 @@ namespace SOSXR.EditorSpice.EditorScripts
     /// None
     /// </summary>
     [CustomEditor(typeof(XRDirectInteractor))]
+    [CanEditMultipleObjects]
     public class XRInteractorExtendedBaseInteractorEditor : EditorGUIHelpers
     {
         private void OnEnable()

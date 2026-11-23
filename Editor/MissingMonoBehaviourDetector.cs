@@ -4,14 +4,18 @@ using UnityEngine;
 
 namespace SOSXR.EditorSpice.EditorScripts
 {
-    public class MissingMonoBehaviourDetector : MonoBehaviour
+    /// <summary>
+    ///     Menu items to find and remove missing scripts. A static class (not a MonoBehaviour): it lives in an Editor-only
+    ///     assembly, so as a component it would be missing in builds.
+    /// </summary>
+    public static class MissingMonoBehaviourDetector
     {
         // Optional: [UnityEditor.Callbacks.DidReloadScripts]
         [MenuItem("SOSXR/Find GameObjects with Missing Scripts")]
-        [ContextMenu(nameof(FindGameObjectsWithMissingScripts))]
         private static void FindGameObjectsWithMissingScripts()
         {
-            var allObjectsInScene = FindObjectsByType<GameObject>(FindObjectsInactive.Exclude);
+            // Include inactive objects: a missing script on a disabled object breaks just the same once it is enabled.
+            var allObjectsInScene = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include);
 
             foreach (var go in allObjectsInScene)
             {
@@ -64,31 +68,15 @@ namespace SOSXR.EditorSpice.EditorScripts
 
         private static bool RemoveMissingScripts(GameObject gameObject)
         {
-            var components = gameObject.GetComponents<Component>();
-            var serializedObject = new SerializedObject(gameObject);
-            var prop = serializedObject.FindProperty("m_Component");
-            var r = 0;
-
-            for (var j = 0; j < components.Length; j++)
-            {
-                if (components[j] != null)
-                {
-                    continue;
-                }
-
-                prop.DeleteArrayElementAtIndex(j - r);
-                r++;
-            }
-
-            if (r <= 0)
+            if (GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(gameObject) == 0)
             {
                 return false;
             }
 
-            serializedObject.ApplyModifiedProperties();
-            serializedObject.Update();
+            // Record first, so Edit > Undo brings the (missing) components back.
+            Undo.RegisterCompleteObjectUndo(gameObject, "Remove Missing Scripts");
 
-            return true;
+            return GameObjectUtility.RemoveMonoBehavioursWithMissingScript(gameObject) > 0;
         }
 
 

@@ -24,11 +24,9 @@ namespace SOSXR.EditorSpice.EditorScripts
     /// Based on Warped Imagination: https://www.youtube.com/watch?v=iqbUbtwiiz0
     /// </summary>
     [CustomEditor(typeof(Canvas))]
+    [CanEditMultipleObjects]
     public class CanvasExtendedEditor : EditorGUIHelpers
     {
-        private static bool _setMainCamera = true;
-
-
         private void OnEnable()
         {
             // Delay initialization to avoid null reference during domain reload
@@ -59,20 +57,26 @@ namespace SOSXR.EditorSpice.EditorScripts
                 return;
             }
 
+            if (canvas.worldCamera != null)
+            {
+                return;
+            }
+
             CreateHeader("Warning: This only works when the MainCam is in the scene during development", LabelStyle);
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            _setMainCamera = GUILayout.Toggle(_setMainCamera, "Set MainCam as WorldCam", GUILayout.Width(ButtonWidth * 1.25f));
-
-            if (_setMainCamera && canvas.worldCamera == null)
+            // Assign only on request (not on every repaint), with Undo, so the change is saved with the scene.
+            if (GUILayout.Button("Set MainCam as WorldCam", GUILayout.Width(ButtonWidth * 1.25f)))
             {
                 var mainCamera = Camera.main;
 
                 if (mainCamera != null)
                 {
+                    Undo.RecordObject(canvas, "Set Main Camera as World Camera");
                     canvas.worldCamera = mainCamera;
+                    EditorUtility.SetDirty(canvas);
                 }
                 else
                 {

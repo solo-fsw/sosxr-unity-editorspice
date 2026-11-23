@@ -10,7 +10,7 @@ namespace SOSXR.EditorSpice.EditorScripts
     /// <summary>
     ///     A helper editor script for finding missing references to objects.
     /// </summary>
-    public class MissingReferencesFinder : MonoBehaviour
+    public static class MissingReferencesFinder
     {
         private const string MENU_ROOT = "SOSXR/Missing References/";
 
@@ -33,10 +33,29 @@ namespace SOSXR.EditorSpice.EditorScripts
         [MenuItem(MENU_ROOT + "Search in all scenes", false, 51)]
         public static void FindMissingReferencesInAllScenes()
         {
-            foreach (var scene in EditorBuildSettings.scenes.Where(s => s.enabled))
+            // Opening another scene discards unsaved changes: ask first, and stop when the user cancels.
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
             {
-                EditorSceneManager.OpenScene(scene.path);
-                FindMissingReferencesInCurrentScene();
+                return;
+            }
+
+            var originalSetup = EditorSceneManager.GetSceneManagerSetup();
+
+            try
+            {
+                foreach (var scene in EditorBuildSettings.scenes.Where(s => s.enabled))
+                {
+                    EditorSceneManager.OpenScene(scene.path);
+                    FindMissingReferencesInCurrentScene();
+                }
+            }
+            finally
+            {
+                // Reopen the scenes that were open before the search.
+                if (originalSetup != null && originalSetup.Length > 0)
+                {
+                    EditorSceneManager.RestoreSceneManagerSetup(originalSetup);
+                }
             }
         }
 
@@ -67,10 +86,10 @@ namespace SOSXR.EditorSpice.EditorScripts
 
                 foreach (var component in components)
                 {
-                    // Missing components will be null, we can't find their type, etc.
+                    // Missing scripts are null entries: their type is unknown, so don't call GetType() on them.
                     if (!component)
                     {
-                        var errorMessage = $"Missing Component {component.GetType().FullName} in GameObject: {GetFullPath(go)}";
+                        var errorMessage = $"Missing Component (script missing) in GameObject: {GetFullPath(go)}";
                         Debug.LogError(errorMessage);
 
                         continue;

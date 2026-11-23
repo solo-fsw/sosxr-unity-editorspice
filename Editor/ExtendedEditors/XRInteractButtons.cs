@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.UI;
@@ -6,6 +7,10 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace SOSXR.EditorSpice.EditorScripts
 {
+    /// <summary>
+    ///     Debug buttons that raise XR Interaction Toolkit events from the inspector. The events get event args with the
+    ///     interactor or interactable filled in (not null), so listeners that read the args do not throw. The other side is not set.
+    /// </summary>
     public static class XRInteractButtons
     {
         public const float ButtonWidth = 150f;
@@ -18,12 +23,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUILayout.Button("Select Entered", GUILayout.Width(ButtonWidth)))
             {
-                interactor.selectEntered?.Invoke(null);
+                interactor.selectEntered?.Invoke(new SelectEnterEventArgs {interactorObject = interactor});
             }
 
             if (GUILayout.Button("Select Exited", GUILayout.Width(ButtonWidth)))
             {
-                interactor.selectExited?.Invoke(null);
+                interactor.selectExited?.Invoke(new SelectExitEventArgs {interactorObject = interactor});
             }
 
             GUILayout.FlexibleSpace();
@@ -38,12 +43,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUILayout.Button("Hover Entered", GUILayout.Width(ButtonWidth)))
             {
-                interactor.hoverEntered?.Invoke(null);
+                interactor.hoverEntered?.Invoke(new HoverEnterEventArgs {interactorObject = interactor});
             }
 
             if (GUILayout.Button("Hover Exited", GUILayout.Width(ButtonWidth)))
             {
-                interactor.hoverExited?.Invoke(null);
+                interactor.hoverExited?.Invoke(new HoverExitEventArgs {interactorObject = interactor});
             }
 
             GUILayout.FlexibleSpace();
@@ -58,12 +63,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUILayout.Button("Hover Entered", GUILayout.Width(ButtonWidth)))
             {
-                interactor.hoverEntered?.Invoke(null);
+                interactor.hoverEntered?.Invoke(new HoverEnterEventArgs {interactableObject = interactor});
             }
 
             if (GUILayout.Button("Hover Exited", GUILayout.Width(ButtonWidth)))
             {
-                interactor.hoverExited?.Invoke(null);
+                interactor.hoverExited?.Invoke(new HoverExitEventArgs {interactableObject = interactor});
             }
 
             GUILayout.FlexibleSpace();
@@ -78,12 +83,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUILayout.Button("UI Hover Entered", GUILayout.Width(ButtonWidth)))
             {
-                interactor.uiHoverEntered?.Invoke(null);
+                interactor.uiHoverEntered?.Invoke(new UIHoverEventArgs {interactorObject = interactor});
             }
 
             if (GUILayout.Button("UI Hover Exited", GUILayout.Width(ButtonWidth)))
             {
-                interactor.uiHoverExited?.Invoke(null);
+                interactor.uiHoverExited?.Invoke(new UIHoverEventArgs {interactorObject = interactor});
             }
 
             GUILayout.FlexibleSpace();
@@ -98,12 +103,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUILayout.Button("First Hover Entered", GUILayout.Width(ButtonWidth)))
             {
-                interactable.firstHoverEntered?.Invoke(null);
+                interactable.firstHoverEntered?.Invoke(new HoverEnterEventArgs {interactableObject = interactable});
             }
 
             if (GUILayout.Button("Last Hover Exited", GUILayout.Width(ButtonWidth)))
             {
-                interactable.lastHoverExited?.Invoke(null);
+                interactable.lastHoverExited?.Invoke(new HoverExitEventArgs {interactableObject = interactable});
             }
 
             GUILayout.FlexibleSpace();
@@ -118,12 +123,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUILayout.Button("First Select Entered", GUILayout.Width(ButtonWidth)))
             {
-                interactable.firstSelectEntered?.Invoke(null);
+                interactable.firstSelectEntered?.Invoke(new SelectEnterEventArgs {interactableObject = interactable});
             }
 
             if (GUILayout.Button("Last Select Exited", GUILayout.Width(ButtonWidth)))
             {
-                interactable.lastSelectExited?.Invoke(null);
+                interactable.lastSelectExited?.Invoke(new SelectExitEventArgs {interactableObject = interactable});
             }
 
             GUILayout.FlexibleSpace();
@@ -138,12 +143,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUILayout.Button("First Focus Entered", GUILayout.Width(ButtonWidth)))
             {
-                interactable.firstFocusEntered?.Invoke(null);
+                interactable.firstFocusEntered?.Invoke(new FocusEnterEventArgs {interactableObject = interactable});
             }
 
             if (GUILayout.Button("Last Focus Exited", GUILayout.Width(ButtonWidth)))
             {
-                interactable.lastFocusExited?.Invoke(null);
+                interactable.lastFocusExited?.Invoke(new FocusExitEventArgs {interactableObject = interactable});
             }
 
             GUILayout.FlexibleSpace();
@@ -158,12 +163,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUILayout.Button("Select Entered", GUILayout.Width(ButtonWidth)))
             {
-                interactable.selectEntered?.Invoke(null);
+                interactable.selectEntered?.Invoke(new SelectEnterEventArgs {interactableObject = interactable});
             }
 
             if (GUILayout.Button("Select Exited", GUILayout.Width(ButtonWidth)))
             {
-                interactable.selectExited?.Invoke(null);
+                interactable.selectExited?.Invoke(new SelectExitEventArgs {interactableObject = interactable});
             }
 
             GUILayout.FlexibleSpace();
@@ -178,12 +183,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUILayout.Button("Focus Entered", GUILayout.Width(ButtonWidth)))
             {
-                interactable.focusEntered?.Invoke(null);
+                interactable.focusEntered?.Invoke(new FocusEnterEventArgs {interactableObject = interactable});
             }
 
             if (GUILayout.Button("Focus Exited", GUILayout.Width(ButtonWidth)))
             {
-                interactable.focusExited?.Invoke(null);
+                interactable.focusExited?.Invoke(new FocusExitEventArgs {interactableObject = interactable});
             }
 
             GUILayout.FlexibleSpace();
@@ -198,12 +203,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUILayout.Button("Activated", GUILayout.Width(ButtonWidth)))
             {
-                interactor.activated?.Invoke(null);
+                interactor.activated?.Invoke(new ActivateEventArgs {interactableObject = interactor});
             }
 
             if (GUILayout.Button("Deactivated", GUILayout.Width(ButtonWidth)))
             {
-                interactor.deactivated?.Invoke(null);
+                interactor.deactivated?.Invoke(new DeactivateEventArgs {interactableObject = interactor});
             }
 
             GUILayout.FlexibleSpace();

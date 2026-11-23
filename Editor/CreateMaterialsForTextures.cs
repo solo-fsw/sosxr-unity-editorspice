@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 
 namespace SOSXR.EditorSpice.EditorScripts
@@ -24,12 +25,36 @@ namespace SOSXR.EditorSpice.EditorScripts
 
         private void OnEnable()
         {
-            Shader = Shader.Find("SimpleLit");
+            Shader = FindDefaultShader();
+        }
+
+
+        /// <summary>
+        ///     The default shader of the active render pipeline (for example URP Lit), or the Built-in Standard shader.
+        ///     Shader.Find("SimpleLit") found nothing: the URP name is "Universal Render Pipeline/Simple Lit".
+        /// </summary>
+        private static Shader FindDefaultShader()
+        {
+            var pipeline = GraphicsSettings.currentRenderPipeline;
+
+            if (pipeline != null && pipeline.defaultShader != null)
+            {
+                return pipeline.defaultShader;
+            }
+
+            return Shader.Find("Standard");
         }
 
 
         private void OnWizardCreate()
         {
+            if (Shader == null)
+            {
+                Debug.LogError("No shader selected. Pick a shader in the wizard and try again.");
+
+                return;
+            }
+
             try
             {
                 AssetDatabase.StartAssetEditing();
@@ -38,7 +63,7 @@ namespace SOSXR.EditorSpice.EditorScripts
                 foreach (var tex in textures)
                 {
                     var path = AssetDatabase.GetAssetPath(tex);
-                    path = path[..path.LastIndexOf(".", StringComparison.Ordinal)] + ".mat";
+                    path = System.IO.Path.ChangeExtension(path, ".mat");
 
                     if (AssetDatabase.LoadAssetAtPath(path, typeof(Material)) != null)
                     {

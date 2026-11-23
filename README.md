@@ -145,7 +145,12 @@ Scripting:
 
 ## AudioPreview (by Warped Imagination)
 
-When clicking on an audio file in the editor, the Audio Preview allows you to click on it to hear it real time. By default, the Unity Editor hides this function.
+Play an AudioClip straight from the Project window, without opening it. By default, the Unity Editor hides this function.
+
+- Double-click (or press Enter on) an AudioClip to play it.
+- Or select an AudioClip in the Project window and press Space.
+- Repeat on the same clip to stop it. Trigger another clip to switch to it.
+- Space is ignored while you type in a text field (such as the search bar), and when Shift, Ctrl, Alt or Cmd is held.
 
 ## AutoSave (by Tarodev)
 
@@ -224,11 +229,11 @@ Adds "Zero Out" and "One" context menu items to Vector3 properties in the Inspec
 
 ## CreateMaterialsForTextures
 
-ScriptableWizard that batch-creates materials for selected textures using a specified shader (default: `SimpleLit`). Skips textures that already have a material at the same path.
+ScriptableWizard that batch-creates materials for selected textures using a specified shader. The default is the active render pipeline's default shader (URP: Lit), or `Standard` in the Built-in Render Pipeline. Skips textures that already have a material at the same path.
 
 ## DefineSymbolManager
 
-Adds `SOSXR_EDITORTOOLS_INSTALLED` to the project's scripting define symbols on load. Removes it automatically when the package is deleted. Symbols are appended, so other define symbols stay untouched.
+Adds `SOSXR_EDITORTOOLS_INSTALLED` to the scripting define symbols of the selected build target on load, if it is not there yet. Symbols are appended, so other define symbols stay untouched. When the package folder is deleted it tries to remove the symbol again. That is not guaranteed, because the removal code is part of the package being removed: if the symbol stays, remove it in Player Settings.
 
 `SetScriptingDefineSymbols` adds `EDITORSPICE` the same way.
 
@@ -240,11 +245,21 @@ Abstract base class for custom editor windows and inspectors. Derive from it to 
 
 Installs the Essential packages in one Package Manager request. A domain reload during the install does not stop it halfway.
 
+"Import Essential Assets" imports Asset Store packages from the local download cache: `~/Library/Unity/Asset Store-5.x` on macOS, `~/.local/share/unity3d/Asset Store-5.x` on Linux, `%APPDATA%/Unity/Asset Store-5.x` on Windows, or the custom cache location from Preferences. When a package is not in the expected publisher folder, the whole cache is searched by file name.
+
 ## Extended Inspectors
+
+Adds SOSXR tools below the built-in inspectors of Canvas, VideoPlayer and the XR interactors and interactables.
+
+- Multi-object editing works. With several objects selected, only the built-in inspector is shown; the SOSXR tools act on one object at a time.
+- If the built-in inspector cannot be found (internal Unity type renamed), the default inspector is shown instead of an empty one.
+- Canvas (World Space, no camera assigned): the "Set MainCam as WorldCam" button assigns the Main Camera, with Undo. It no longer assigns it automatically.
+- XR debug buttons raise the events with event args that have the interactor or interactable filled in.
+- UnityEvent "Invoke" buttons (Play mode) also work for events inside serializable classes, structs and lists, and invoke the event on every selected object.
 
 ## GameObjectUtilityExtensions
 
-Removes missing script components from selected GameObjects. Available under `SOSXR/DANGER/Remove Missing Scripts`.
+Removes missing script components from selected GameObjects, with Undo. Available under `SOSXR/DANGER/Remove Missing Scripts`.
 
 ## HierarchyIconDisplay (by Warped Imagination)
 
@@ -307,11 +322,17 @@ Utilities for working with Markdown files in the editor.
 
 ## MissingMonoBehaviourDetector
 
-Scans all scene GameObjects and logs console warnings for any missing MonoBehaviour components.
+Scans all scene GameObjects, including inactive ones, and logs console warnings for any missing MonoBehaviour components. Menu: `SOSXR/Find GameObjects with Missing Scripts`.
+
+`SOSXR/Missing References/Search in all scenes` asks to save modified scenes first, and reopens the scenes that were open when it is done.
 
 ## MonoBehavior Utility
 
 Checks for missing script count on a `MonoBehaviour`. Used by `MissingMonoBehaviourDetector`.
+
+## Pivot Utilities
+
+`SOSXR/Pivot/Create Pivot` puts the selected object under a new empty parent at the same position; `Create Pivot (Local Zero)` places the parent at local zero. `Delete Pivot` removes the selected empty parent and keeps its children. All three support Undo. Delete Pivot refuses an object without children, and asks first when the object has other components than its Transform.
 
 ## Readme Helpers
 
@@ -320,6 +341,13 @@ Creates a `README.md` from a template at the project root. Available via `Assets
 ### ReadmeShower
 
 Displays a README asset in a scrollable text area in the Inspector when attached to a GameObject. It picks the `README.md` closest to the Assets root.
+
+## Scene Camera Sync
+
+Makes the Scene view camera follow the Main Camera's settings: clip planes, field of view, orthographic mode, skybox, fog and post-processing. Optionally also its position and rotation (`SOSXR/Scene Camera Sync/Toggle Follow Transform`).
+
+- Off by default. Turn it on with the camera button in the bottom-left corner of the Scene view, or `SOSXR/Scene Camera Sync/Toggle`.
+- While it is on, these Scene view settings follow the Main Camera every frame and cannot be changed by hand.
 
 ## SetIconWindow (based on Warped Imagination)
 

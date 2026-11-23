@@ -25,7 +25,7 @@ namespace SOSXR.Setup
         [MenuItem("SOSXR/Setup/Import Essential Assets")]
         public static void ImportEssentials()
         {
-            Assets.ImportAsset("DOTween HOTween v2.unitypackage", "FlyingWorm/Editor ExtensionsSystem");
+            Assets.ImportAsset("DOTween HOTween v2.unitypackage", "Demigiant/Editor ExtensionsAnimation");
 
             if (!Assets.ImportAsset("Mantis LOD Editor - Professional Edition.unitypackage", "Mesh Online/Editor ExtensionsModeling"))
             {
@@ -36,8 +36,8 @@ namespace SOSXR.Setup
             Assets.ImportAsset("Play Mode Saver.unitypackage", "Clarky/Editor ExtensionsSystem");
             Assets.ImportAsset("3D Measurements.unitypackage", "Energise/Editor ExtensionsSystem");
             Assets.ImportAsset("F Texture Tools.unitypackage", "FImpossible Creations/Editor ExtensionsSystem");
-            Assets.ImportAsset("Editor Console Pro.unitypackage", "HeurekaGames/Editor ExtensionsUtilities");
-            Assets.ImportAsset("Asset Hunter PRO.unitypackage", "Demigiant/Editor ExtensionsAnimation");
+            Assets.ImportAsset("Editor Console Pro.unitypackage", "FlyingWorm/Editor ExtensionsSystem");
+            Assets.ImportAsset("Asset Hunter PRO.unitypackage", "HeurekaGames/Editor ExtensionsUtilities");
             Assets.ImportAsset("Mesh Baker.unitypackage", "Ian Deane/ScriptingModeling");
             Assets.ImportAsset("Colourful Hierarchy Category GameObject.unitypackage", "M STUDIO HUB/Editor ExtensionsUtilities");
             Assets.ImportAsset("Smart Editor Selection.unitypackage", "Overfort Games/Editor ExtensionsDesign");
@@ -150,26 +150,21 @@ namespace SOSXR.Setup
         {
             public static bool ImportAsset(string asset, string folder)
             {
-                string basePath;
-
-                if (OSVersion.Platform is PlatformID.MacOSX or PlatformID.Unix)
-                {
-                    var homeDirectory = GetFolderPath(SpecialFolder.Personal);
-                    basePath = Combine(homeDirectory, "Library/Unity/Asset Store-5.x");
-                }
-                else
-                {
-                    var defaultPath = Combine(GetFolderPath(SpecialFolder.ApplicationData), "Unity");
-                    basePath = Combine(EditorPrefs.GetString("AssetStoreCacheRootPath", defaultPath), "Asset Store-5.x");
-                }
+                var basePath = GetAssetStoreCachePath();
 
                 asset = asset.EndsWith(".unitypackage") ? asset : asset + ".unitypackage";
 
                 var fullPath = Combine(basePath, folder, asset);
 
+                // Publisher or category folders change: fall back to a search of the whole cache by file name.
                 if (!File.Exists(fullPath))
                 {
-                    Debug.LogWarning($"The asset package was not found at the path: {fullPath}");
+                    fullPath = FindInCache(basePath, asset);
+                }
+
+                if (fullPath == null)
+                {
+                    Debug.LogWarning($"The asset package {asset} was not found in the Asset Store cache: {basePath}");
 
                     return false;
                 }
@@ -177,6 +172,46 @@ namespace SOSXR.Setup
                 UnityEditor.AssetPackage.Package.Import(fullPath, false);
 
                 return true;
+            }
+
+
+            /// <summary>
+            ///     The Asset Store download cache. A custom location set in Preferences (AssetStoreCacheRootPath) wins;
+            ///     otherwise the default per platform: ~/Library/Unity on macOS, ~/.local/share/unity3d on Linux, %APPDATA%/Unity on Windows.
+            /// </summary>
+            private static string GetAssetStoreCachePath()
+            {
+                var defaultRoot = Application.platform switch
+                                  {
+                                      RuntimePlatform.OSXEditor => Combine(GetFolderPath(SpecialFolder.Personal), "Library", "Unity"),
+                                      RuntimePlatform.LinuxEditor => Combine(GetFolderPath(SpecialFolder.Personal), ".local", "share", "unity3d"),
+                                      _ => Combine(GetFolderPath(SpecialFolder.ApplicationData), "Unity")
+                                  };
+
+                return Combine(EditorPrefs.GetString("AssetStoreCacheRootPath", defaultRoot), "Asset Store-5.x");
+            }
+
+
+            private static string FindInCache(string basePath, string fileName)
+            {
+                if (!Directory.Exists(basePath))
+                {
+                    return null;
+                }
+
+                try
+                {
+                    foreach (var file in Directory.EnumerateFiles(basePath, fileName, SearchOption.AllDirectories))
+                    {
+                        return file;
+                    }
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    Debug.LogWarning($"Could not search the Asset Store cache: {exception.Message}");
+                }
+
+                return null;
             }
         }
 

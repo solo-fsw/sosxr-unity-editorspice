@@ -1,11 +1,15 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.PackageManager;
-using Debug = UnityEngine.Debug;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 
 namespace SOSXR.EditorSpice.EditorScripts
 {
-    // [InitializeOnLoad]
+    /// <summary>
+    ///     Synchronous check whether a package is registered in the project (direct or indirect dependency).
+    ///     Results are cached until the Package Manager reports a change.
+    /// </summary>
     public static class PackageIsInstalled
     {
         static PackageIsInstalled()
@@ -20,16 +24,22 @@ namespace SOSXR.EditorSpice.EditorScripts
 
         public static bool PackageInstalled(string packageName)
         {
+            if (string.IsNullOrEmpty(packageName))
+            {
+                return false;
+            }
+
             if (Cache.TryGetValue(packageName, out var isInstalled))
             {
-                Debug.Log("Package " + packageName + " is installed, this was cached");
-
                 return isInstalled;
             }
 
-            Debug.Log("Package " + packageName + " is not installed");
+            // Ask the Package Manager instead of relying on change events only: packages installed before this class
+            // was first used never raise an event, so they were reported as not installed.
+            isInstalled = PackageInfo.GetAllRegisteredPackages().Any(package => package.name == packageName);
+            Cache[packageName] = isInstalled;
 
-            return Cache.ContainsKey(packageName) && Cache[packageName];
+            return isInstalled;
         }
 
 
@@ -37,19 +47,8 @@ namespace SOSXR.EditorSpice.EditorScripts
         {
             // Debug.Log("We have a package change, clearing cache");
 
-            // Clear the cache when packages change
+            // Packages changed: the next PackageInstalled call asks the Package Manager again.
             Cache.Clear();
-
-            // Optionally repopulate cache with currently installed packages
-            foreach (var package in args.added)
-            {
-                Cache[package.name] = true;
-            }
-
-            foreach (var package in args.removed)
-            {
-                Cache[package.name] = false;
-            }
         }
     }
 }

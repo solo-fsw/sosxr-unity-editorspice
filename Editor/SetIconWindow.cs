@@ -156,18 +156,24 @@ namespace SOSXR.EditorSpice.EditorScripts
         {
             AssetDatabase.StartAssetEditing();
 
-            foreach (var asset in Selection.objects)
+            // StopAssetEditing must run even when an import throws, or the Editor stops importing assets.
+            try
             {
-                var path = AssetDatabase.GetAssetPath(asset);
-
-                if (AssetImporter.GetAtPath(path) is MonoImporter importer)
+                foreach (var asset in Selection.objects)
                 {
-                    importer.SetIcon(icon);
-                    AssetDatabase.ImportAsset(path);
+                    var path = AssetDatabase.GetAssetPath(asset);
+
+                    if (AssetImporter.GetAtPath(path) is MonoImporter importer)
+                    {
+                        importer.SetIcon(icon);
+                        AssetDatabase.ImportAsset(path);
+                    }
                 }
             }
-
-            AssetDatabase.StopAssetEditing();
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
             AssetDatabase.Refresh();
         }
 
@@ -187,6 +193,26 @@ namespace SOSXR.EditorSpice.EditorScripts
             DestroyImmediate(rt);
 
             return result;
+        }
+
+
+        private void OnDestroy()
+        {
+            // The scaled previews are textures created by this window: release them.
+            if (_cachedIconContents == null)
+            {
+                return;
+            }
+
+            foreach (var content in _cachedIconContents)
+            {
+                if (content?.image != null)
+                {
+                    DestroyImmediate(content.image);
+                }
+            }
+
+            _cachedIconContents = null;
         }
 
 

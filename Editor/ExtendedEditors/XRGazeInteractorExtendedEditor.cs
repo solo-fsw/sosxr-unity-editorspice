@@ -25,6 +25,7 @@ namespace SOSXR.EditorSpice.EditorScripts
     /// None
     /// </summary>
     [CustomEditor(typeof(XRGazeInteractor))]
+    [CanEditMultipleObjects]
     public class XRGazeInteractorExtendedEditor : EditorGUIHelpers
     {
         private void OnEnable()

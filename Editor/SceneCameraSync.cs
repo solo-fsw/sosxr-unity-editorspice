@@ -6,6 +6,7 @@ using UnityEngine;
 /// Additional toggle is to also match the transform / rotation
 /// Draws icon in Scene view: click to toggle
 /// Draws on every update if enabled
+/// Off by default: while on, the Scene view's camera settings follow the Main Camera and cannot be changed by hand.
 /// </summary>
 [InitializeOnLoad]
 static class SceneCameraSync
@@ -13,7 +14,7 @@ static class SceneCameraSync
     const string Key = "SceneCameraSync.Enabled";
     static bool Enabled
     {
-        get => EditorPrefs.GetBool(Key, true);
+        get => EditorPrefs.GetBool(Key, false);
         set => EditorPrefs.SetBool(Key, value);
     }
 

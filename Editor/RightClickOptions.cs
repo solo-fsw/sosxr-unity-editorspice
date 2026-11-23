@@ -25,15 +25,21 @@ namespace SOSXR.EditorSpice.EditorScripts
         {
             var source = command.context as Component;
 
+            if (source == null || source is Transform)
+            {
+                return; // A Transform cannot move to another GameObject
+            }
+
             var undoGroupIndex = Undo.GetCurrentGroup();
 
             Undo.IncrementCurrentGroup();
 
             var child = new GameObject(source.GetType().Name);
-            child.transform.parent = source.transform;
-            child.transform.localPosition = source.transform.localPosition;
-            child.transform.localRotation = source.transform.localRotation;
-            child.transform.localScale = source.transform.localScale;
+            // The child sits exactly on its parent: local zero, identity and one. Copying the parent's local values offset it.
+            child.transform.SetParent(source.transform, false);
+            child.transform.localPosition = Vector3.zero;
+            child.transform.localRotation = Quaternion.identity;
+            child.transform.localScale = Vector3.one;
 
             Undo.RegisterCreatedObjectUndo(child, $"Created child object: {child.name}");
 

@@ -14,6 +14,13 @@ namespace SOSXR.EditorSpice.EditorScripts
         private static readonly Dictionary<string, bool> PackageCache = new(); // Cache for package status checks.
 
 
+        static Package()
+        {
+            // Installing or removing packages makes the cached answers stale.
+            Events.registeredPackages += _ => PackageCache.Clear();
+        }
+
+
         public static void IsInstalled(string packageName, Action<bool> callback)
         {
             if (PackageCache.TryGetValue(packageName, out var cachedResult))
@@ -23,7 +30,8 @@ namespace SOSXR.EditorSpice.EditorScripts
                 return;
             }
 
-            var listRequest = Client.List();
+            // Offline, and including indirect dependencies: a package pulled in by another one is installed too.
+            var listRequest = Client.List(true, true);
 
 
             EditorApplication.update += OnEditorUpdate;

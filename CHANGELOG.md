@@ -3,15 +3,66 @@
 All notable changes to this project will be documented in this file.
 The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+## [0.8.2] 23-11-2026
 
-### Added
-
-- `BatchPackageUpdater` shows the version a Git package updates to (`0.7.0 → 0.8.0  (abc1234 → def5678)`). It reads `package.json` at the remote commit with a shallow, blobless fetch into a temporary folder.
-- `PackageUpdateMath.GetPackageJsonPath`, `ParsePackageJsonVersion` and `FormatGitUpdateMessage`, with EditMode tests.
+Fixes from the audit of older EditorSpice code (2026-11-17).
 
 ### Fixed
 
+- `MissingReferencesFinder` threw a `NullReferenceException` at the first missing script: it called `GetType()` on the null component.
+- "Search in all scenes" opened each scene without asking to save, so unsaved changes were lost. It now asks first, stops on Cancel, and reopens the scenes that were open before.
+- `SceneCameraSync` was on by default and overwrote the Scene view's camera settings every frame. It is now off by default (a setting you changed yourself is kept).
+- Essential Importer: DOTween, Editor Console Pro and Asset Hunter PRO had each other's publisher folders, so they were never found. The paths are corrected, and a package that is not in the expected folder is searched for in the whole Asset Store cache. Linux now uses `~/.local/share/unity3d`, and the custom cache location from Preferences is used on every platform.
+- Extended inspectors (Canvas, VideoPlayer, XR interactors and interactables): multi-object editing showed "Multi-object editing not supported". With several objects selected, the built-in inspector is now shown without the SOSXR tools. When the built-in editor type is not found, the default inspector is shown instead of an empty one.
+- `EditorGUIHelpers.CreateNestedEditor` created a new Editor on every GUI event. The nested editors are now cached and destroyed in `OnDisable`.
+- `CanvasExtendedEditor` assigned `Camera.main` to every World Space Canvas without a camera as soon as it was shown, without Undo and without marking the scene dirty, and logged a warning on every repaint when there was no Main Camera. It is now a button, with Undo.
+- `LockInspector` (Ctrl/Cmd+L) toggled Constrain Proportions on the inspected Transforms without Undo. It now records Undo and marks them dirty.
+- `PivotUtilities`: Create and Delete Pivot had no Undo. Delete Pivot deleted any selected object, also one without children. It now refuses an object without children, asks first when the object has other components, and supports Undo. A pivot for a root object is created in that object's scene.
+- `CreateMaterialsForTextures` used `Shader.Find("SimpleLit")`, which finds nothing, and then threw. It now uses the render pipeline's default shader, or `Standard`.
+- "Extract Component to Child" gave the child the parent's local position, rotation and scale again, so it was offset. The child now sits on its parent. Extracting a Transform does nothing.
+- `ContextProperties` (Vector3 Zero Out / One) used the `SerializedProperty` after the menu closed; it now uses a copy.
+- UnityEvent "Invoke" buttons threw for events inside serializable classes, structs and lists, and only invoked the first selected object. They now follow the property path and invoke every selected object.
+- `SetIconWindow`: an exception during the icon import left asset importing locked. The scaled preview textures are now destroyed with the window.
+- `PackageIsInstalled.PackageInstalled` returned false for packages installed before it was first used. It now asks the Package Manager and caches the answer until packages change.
+- `Package.IsInstalled` only listed direct dependencies and never cleared its cache.
+- `MissingMonoBehaviourDetector` skipped inactive GameObjects, and removed missing scripts without Undo. It now uses `GameObjectUtility.RemoveMonoBehavioursWithMissingScript` with Undo.
+- `CreateCustomGameObject` had no Undo and did not mark the scene dirty.
+- XR debug buttons invoked the events with `null` args, so listeners that read the args threw.
+- `VideoPlayerExtendedEditor` showed two-digit milliseconds for clips of a minute or longer.
+- AutoSave: an exception while saving ended the auto-save task until the next domain reload. It is now logged and auto-save continues.
+
+### Added
+
+- `UnityEventButtonBase.GetEvents<T>(SerializedProperty)` and `UnityEventButtonBase.TryGetValueAtPath(object, string, out object)`.
+- `EditorGUIHelpers.InternalEditorTypeMissing`.
+- EditMode tests: `OlderCodeFixTests`.
+- README: Extended Inspectors, Pivot Utilities, Scene Camera Sync.
+
+### Changed
+
+- `MissingMonoBehaviourDetector` and `MissingReferencesFinder` are static classes instead of `MonoBehaviour`s. They are in an Editor-only assembly, so as components they would be missing in builds.
+
+### Not changed
+
+- `DefineSymbolManager` still adds `SOSXR_EDITORTOOLS_INSTALLED` (only when it is missing): other projects may check it. The README now says that removing it on uninstall is not guaranteed.
+- `ReadmeShower` still selects the README once per Editor session, by design.
+
+## [0.8.1]
+
+### Added
+
+- `AudioPreviewer`: select an AudioClip in the Project window and press Space to play it. Press Space again to stop. Ignored while a text field is being edited or when Shift, Ctrl, Alt or Cmd is held.
+- `AudioPreviewer.ShouldPlay`, `AudioPreviewer.IsSpacebarPreviewEvent` and `AudioPreviewer.TogglePreview`, with EditMode tests: `AudioPreviewerTests`.
+- `BatchPackageUpdater` shows the version a Git package updates to (`0.7.0 → 0.8.0  (abc1234 → def5678)`). It reads `package.json` at the remote commit with a shallow, blobless fetch into a temporary folder.
+- `PackageUpdateMath.GetPackageJsonPath`, `ParsePackageJsonVersion` and `FormatGitUpdateMessage`, with EditMode tests.
+
+### Changed
+
+- `AudioPreviewer` remembers the last played clip by reference instead of by instance or entity id.
+
+### Fixed
+
+- `AudioPreviewer.IsPreviewClipPlaying` returns `false` instead of throwing when Unity's internal `AudioUtil` method is missing.
 - `BatchPackageUpdater` no longer logs "Update failed:" with an empty error after a successful update. An update that reloads the domain (for example of EditorSpice itself) left a stale request behind. The window now remembers the pending updates in `SessionState`, and after the refresh it checks each package's installed commit or version and logs which packages updated.
 
 ## [0.8.0] 17-11-2026

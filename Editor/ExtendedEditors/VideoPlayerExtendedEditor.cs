@@ -11,6 +11,7 @@ namespace SOSXR.EditorSpice.EditorScripts
     ///     https://www.youtube.com/watch?v=iqbUbtwiiz0
     /// </summary>
     [CustomEditor(typeof(VideoPlayer))]
+    [CanEditMultipleObjects]
     public class VideoPlayerExtendedEditor : EditorGUIHelpers
     {
         private bool _isPaused;
@@ -149,7 +150,7 @@ namespace SOSXR.EditorSpice.EditorScripts
             var seconds = Mathf.FloorToInt(timeInSeconds % 60);
             var milliseconds = Mathf.FloorToInt(timeInSeconds * 1000 % 1000);
 
-            return timeInSeconds >= 60 ? $"{minutes:00}:{seconds:00}.{milliseconds:00}" : $"{seconds:00}.{milliseconds:000}";
+            return timeInSeconds >= 60 ? $"{minutes:00}:{seconds:00}.{milliseconds:000}" : $"{seconds:00}.{milliseconds:000}";
         }
 
 

@@ -31,6 +31,7 @@ namespace SOSXR.EditorSpice.EditorScripts
     /// None
     /// </summary>
     [CustomEditor(typeof(XRGrabInteractable))]
+    [CanEditMultipleObjects]
     public class XRGrabInteractableExtendedEditor : EditorGUIHelpers
     {
         private void OnEnable()

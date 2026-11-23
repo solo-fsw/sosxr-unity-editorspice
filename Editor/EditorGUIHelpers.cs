@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,6 +20,11 @@ namespace SOSXR.EditorSpice.EditorScripts
 
         protected Editor InternalEditor;
 
+        /// <summary>True when the built-in editor type to wrap was not found. The default inspector is drawn instead.</summary>
+        protected bool InternalEditorTypeMissing;
+
+        private readonly Dictionary<string, Editor> _nestedEditors = new();
+
         protected const int DefaultSmallSpace = 5;
         protected const int DefaultLargeSpace = 20;
 
@@ -38,12 +44,13 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (editorType == null)
             {
-                Debug.LogWarning($"Could not find the {typeName} type using reflection.");
+                Debug.LogWarning($"Could not find the {typeName} type using reflection. Drawing the default inspector instead.");
+                InternalEditorTypeMissing = true;
 
                 return;
             }
 
-            InternalEditor = CreateEditor(target, editorType);
+            InternalEditor = CreateEditor(targets, editorType);
         }
 
         protected void GetInternalEditor(Type editorType)
@@ -55,12 +62,13 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (editorType == null)
             {
-                Debug.LogWarning("Editor type is null.");
+                Debug.LogWarning("Editor type is null. Drawing the default inspector instead.");
+                InternalEditorTypeMissing = true;
 
                 return;
             }
 
-            InternalEditor = CreateEditor(target, editorType);
+            InternalEditor = CreateEditor(targets, editorType);
         }
 
         /// <summary>
@@ -87,14 +95,26 @@ namespace SOSXR.EditorSpice.EditorScripts
 
                 if (InternalEditor == null)
                 {
-                    return;
+                    if (!InternalEditorTypeMissing)
+                    {
+                        return; // Still being created (some editors create it on a delayCall)
+                    }
+
+                    // Without the built-in editor the inspector would be empty: show the default one.
+                    DrawDefaultInspector();
+                }
+                else
+                {
+                    InternalEditor.OnInspectorGUI();
                 }
 
-                InternalEditor.OnInspectorGUI();
+                // The SOSXR tools act on one object. With several selected, only the shared built-in inspector is shown.
+                if (targets.Length == 1)
+                {
+                    AddSOSXRHeader();
 
-                AddSOSXRHeader();
-
-                CustomInspectorContent();
+                    CustomInspectorContent();
+                }
             }
 
             serializedObject.ApplyModifiedProperties(); // Needed to allow a List to be populated
@@ -294,8 +314,19 @@ namespace SOSXR.EditorSpice.EditorScripts
         protected void CreateNestedEditor(string propertyName, string toolTip = "")
         {
             var serializedProperty = serializedObject.FindProperty(propertyName);
+            var referencedObject = serializedProperty != null ? serializedProperty.objectReferenceValue : null;
 
-            CreateEditor(serializedProperty.objectReferenceValue).OnInspectorGUI();
+            if (referencedObject == null)
+            {
+                return;
+            }
+
+            // Reuse the nested editor: creating a new one on every GUI event leaks an Editor per repaint.
+            _nestedEditors.TryGetValue(propertyName, out var nestedEditor);
+            CreateCachedEditor(referencedObject, null, ref nestedEditor);
+            _nestedEditors[propertyName] = nestedEditor;
+
+            nestedEditor.OnInspectorGUI();
         }
 
         protected void CreateFloatSliderProperty(
@@ -454,6 +485,16 @@ namespace SOSXR.EditorSpice.EditorScripts
 
         protected virtual void OnDisable()
         {
+            foreach (var nestedEditor in _nestedEditors.Values)
+            {
+                if (nestedEditor != null)
+                {
+                    DestroyImmediate(nestedEditor);
+                }
+            }
+
+            _nestedEditors.Clear();
+
             if (InternalEditor == null)
             {
                 return;

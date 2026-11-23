@@ -15,6 +15,7 @@ namespace SOSXR.EditorSpice.EditorScripts
         [MenuItem("GameObject/Create Empty GameObject _&#%N", false, 0)]
         private static void CreateCustomGameObjectFunction()
         {
+            var undoGroup = Undo.GetCurrentGroup();
             var parent = CreateGameObject("Parent GameObject", "SOSXR_Logo");
 
             var animation = CreateGameObject("Animation", "Animation_icon", parent);
@@ -29,6 +30,11 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             CreateGameObject("VFX", "VFX_icon", parent);
 
+            // One Undo step removes the whole hierarchy. Undo registration also marks the scene dirty.
+            Undo.RegisterCreatedObjectUndo(parent, "Create Custom GameObject");
+            Undo.CollapseUndoOperations(undoGroup);
+            Selection.activeGameObject = parent;
+
             Debug.Log("SOSXR: Custom GameObject created.");
         }
 
@@ -36,7 +42,8 @@ namespace SOSXR.EditorSpice.EditorScripts
         private static GameObject CreateGameObject(string goName, string iconName, GameObject parentTo = null)
         {
             var go = new GameObject(goName);
-            go.transform.parent = parentTo?.transform;
+            // ?. skips Unity's null check; compare explicitly.
+            go.transform.SetParent(parentTo != null ? parentTo.transform : null, false);
             go.transform.position = Vector3.zero;
             go.transform.rotation = Quaternion.identity;
 

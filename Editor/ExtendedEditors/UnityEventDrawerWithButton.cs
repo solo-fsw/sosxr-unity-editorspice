@@ -1,4 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -87,6 +90,76 @@ namespace SOSXR.EditorSpice.EditorScripts
 
 
         protected abstract void SOSXROnGUI(Rect position, SerializedProperty property, GUIContent label);
+
+
+        /// <summary>
+        ///     Returns the event instance behind <paramref name="property" /> on every selected object.
+        ///     Follows the property path, so it also works for events inside serializable classes, structs, arrays and lists
+        ///     (<c>fieldInfo.GetValue(targetObject)</c> only works for a field declared directly on the component).
+        /// </summary>
+        protected static IEnumerable<T> GetEvents<T>(SerializedProperty property) where T : class
+        {
+            foreach (var targetObject in property.serializedObject.targetObjects)
+            {
+                if (targetObject != null && TryGetValueAtPath(targetObject, property.propertyPath, out var value) && value is T unityEvent)
+                {
+                    yield return unityEvent;
+                }
+            }
+        }
+
+
+        /// <summary>Reads the value at a SerializedProperty path such as <c>m_settings.m_events.Array.data[2]</c>.</summary>
+        public static bool TryGetValueAtPath(object root, string propertyPath, out object value)
+        {
+            value = root;
+
+            foreach (var element in propertyPath.Replace(".Array.data[", "[").Split('.'))
+            {
+                if (value == null)
+                {
+                    return false;
+                }
+
+                var bracket = element.IndexOf('[');
+
+                if (bracket < 0)
+                {
+                    value = GetFieldValue(value, element);
+
+                    continue;
+                }
+
+                var indexText = element.Substring(bracket + 1, element.Length - bracket - 2);
+
+                if (!int.TryParse(indexText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var index)
+                    || GetFieldValue(value, element.Substring(0, bracket)) is not IList list
+                    || index < 0 || index >= list.Count)
+                {
+                    return false;
+                }
+
+                value = list[index];
+            }
+
+            return value != null;
+        }
+
+
+        private static object GetFieldValue(object source, string fieldName)
+        {
+            for (var type = source.GetType(); type != null; type = type.BaseType)
+            {
+                var field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+
+                if (field != null)
+                {
+                    return field.GetValue(source);
+                }
+            }
+
+            return null;
+        }
     }
 
 
@@ -102,9 +175,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent;
-                unityEvent?.Invoke();
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent>(property))
+                {
+                    unityEvent.Invoke();
+                }
             }
         }
     }
@@ -130,9 +206,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<string>;
-                unityEvent?.Invoke(newValue);
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<string>>(property))
+                {
+                    unityEvent.Invoke(newValue);
+                }
             }
         }
     }
@@ -158,9 +237,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<int>;
-                unityEvent?.Invoke(newValue);
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<int>>(property))
+                {
+                    unityEvent.Invoke(newValue);
+                }
             }
         }
     }
@@ -186,9 +268,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<float>;
-                unityEvent?.Invoke(newValue);
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<float>>(property))
+                {
+                    unityEvent.Invoke(newValue);
+                }
             }
         }
     }
@@ -214,9 +299,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<bool>;
-                unityEvent?.Invoke(newValue);
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<bool>>(property))
+                {
+                    unityEvent.Invoke(newValue);
+                }
             }
         }
     }
@@ -242,9 +330,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<Vector2>;
-                unityEvent?.Invoke(newValue);
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<Vector2>>(property))
+                {
+                    unityEvent.Invoke(newValue);
+                }
             }
         }
     }
@@ -270,9 +361,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<Vector3>;
-                unityEvent?.Invoke(newValue);
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<Vector3>>(property))
+                {
+                    unityEvent.Invoke(newValue);
+                }
             }
         }
     }
@@ -298,9 +392,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<Vector2Int>;
-                unityEvent?.Invoke(newValue);
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<Vector2Int>>(property))
+                {
+                    unityEvent.Invoke(newValue);
+                }
             }
         }
     }
@@ -326,9 +423,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<Vector3Int>;
-                unityEvent?.Invoke(newValue);
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<Vector3Int>>(property))
+                {
+                    unityEvent.Invoke(newValue);
+                }
             }
         }
     }
@@ -354,9 +454,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<Quaternion>;
-                unityEvent?.Invoke(Quaternion.Euler(newValue));
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<Quaternion>>(property))
+                {
+                    unityEvent.Invoke(Quaternion.Euler(newValue));
+                }
             }
         }
     }
@@ -382,9 +485,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<Transform>;
-                unityEvent?.Invoke(newValue);
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<Transform>>(property))
+                {
+                    unityEvent.Invoke(newValue);
+                }
             }
         }
     }
@@ -410,9 +516,12 @@ namespace SOSXR.EditorSpice.EditorScripts
 
             if (GUI.Button(ButtonRect(position), ButtonLabel))
             {
-                var targetObject = property.serializedObject.targetObject;
-                var unityEvent = fieldInfo.GetValue(targetObject) as UnityEvent<GameObject>;
-                unityEvent?.Invoke(newValue);
+                // Resolve through the property path, so events nested in classes, structs and lists work,
+                // and invoke the event on every selected object.
+                foreach (var unityEvent in GetEvents<UnityEvent<GameObject>>(property))
+                {
+                    unityEvent.Invoke(newValue);
+                }
             }
         }
     }

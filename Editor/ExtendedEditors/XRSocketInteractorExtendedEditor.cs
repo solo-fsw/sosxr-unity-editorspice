@@ -25,6 +25,7 @@ namespace SOSXR.EditorSpice.EditorScripts
     /// None
     /// </summary>
     [CustomEditor(typeof(XRSocketInteractor))]
+    [CanEditMultipleObjects]
     public class XRSocketInteractorExtendedEditor : EditorGUIHelpers
     {
         private void OnEnable()

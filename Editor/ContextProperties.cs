@@ -26,16 +26,19 @@ namespace SOSXR.EditorSpice.EditorScripts
         {
             if (property.propertyType == SerializedPropertyType.Vector3)
             {
+                // The menu runs later: keep a copy, because Unity reuses the property passed in.
+                var propertyCopy = property.Copy();
+
                 menu.AddItem(new GUIContent("Zero Out"), false, () =>
                 {
-                    property.vector3Value = Vector3.zero;
-                    property.serializedObject.ApplyModifiedProperties();
+                    propertyCopy.vector3Value = Vector3.zero;
+                    propertyCopy.serializedObject.ApplyModifiedProperties();
                 });
 
                 menu.AddItem(new GUIContent("One"), false, () =>
                 {
-                    property.vector3Value = Vector3.one;
-                    property.serializedObject.ApplyModifiedProperties();
+                    propertyCopy.vector3Value = Vector3.one;
+                    propertyCopy.serializedObject.ApplyModifiedProperties();
                 });
             }
         }

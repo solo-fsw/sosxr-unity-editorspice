@@ -25,6 +25,7 @@ namespace SOSXR.EditorSpice.EditorScripts
     /// None
     /// </summary>
     [CustomEditor(typeof(NearFarInteractor))]
+    [CanEditMultipleObjects]
     public class XRNearFarInteractorExtendedEditor : EditorGUIHelpers
     {
         private void OnEnable()

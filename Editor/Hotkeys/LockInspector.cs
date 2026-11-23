@@ -43,16 +43,19 @@ public static class LockInspector
         ActiveEditorTracker.sharedTracker.isLocked = !ActiveEditorTracker.sharedTracker.isLocked;
         #endif
 
-        // Constrain Proportions lock for all versions including Unity 6
+        // Constrain Proportions lock for all versions including Unity 6.
+        // This changes the Transform (it is saved with the scene), so record it for Undo.
         foreach (var activeEditor in ActiveEditorTracker.sharedTracker.activeEditors)
         {
-            if (activeEditor.target is not Transform target)
+            if (constrainProportions == null || activeEditor.target is not Transform target)
             {
                 continue;
             }
 
+            Undo.RecordObject(target, "Toggle Constrain Proportions");
             var currentValue = (bool) constrainProportions.GetValue(target, null);
             constrainProportions.SetValue(target, !currentValue, null);
+            EditorUtility.SetDirty(target);
         }
 
         ActiveEditorTracker.sharedTracker.ForceRebuild();
