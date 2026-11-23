@@ -20,17 +20,17 @@
     {
       "displayName": "Spice",
       "description": "Contains Spice samples",
-      "path": "Samples/Spice"
+      "path": "Samples~/Spice"
     },
     {
       "displayName": "Mutable",
       "description": "Contains Spice that would've fit as a part of the regular package, were it not that they require some changes depending on your situation",
-      "path": "Samples/Mutable"
+      "path": "Samples~/Mutable"
     },
     {
       "displayName": "Unity Event Visualizer",
       "description": "A tool to visualize UnityEvents in the editor.",
-      "path": "Samples/UnityEventVisualiser"
+      "path": "Samples~/UnityEventVisualiser"
     }
   ],
   "author": {
